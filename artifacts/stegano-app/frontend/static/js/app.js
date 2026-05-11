@@ -1,5 +1,5 @@
 /**
- * app.js — Lógica del frontend de StegaDetect
+ * app.js — Lógica del frontend de StegoDetect
  *
  * Maneja:
  *   1. Drag & drop y selección de imagen
