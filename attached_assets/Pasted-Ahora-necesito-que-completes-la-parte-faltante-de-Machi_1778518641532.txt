@@ -1,0 +1,560 @@
+Ahora necesito que completes la parte faltante de Machine Learning del proyecto, pero adaptada correctamente al flujo real:
+
+IMPORTANTE:
+La aplicación web en Replit ya funciona en modo mock. Ahora necesito que crees dentro del proyecto Replit todos los archivos necesarios para:
+
+1. Generar un dataset sólido en Google Colab conectado a Google Drive.
+2. Entrenar un buen modelo de estegoanálisis en Colab.
+3. Guardar el checkpoint final en Drive.
+4. Poder descargar ese checkpoint y subirlo luego a Replit para que la app deje de usar mock mode.
+
+NO entrenes el modelo en Replit.
+Replit solo debe contener los scripts y notebooks necesarios para ejecutar el pipeline en Google Colab.
+
+────────────────────────────
+CONTEXTO DEL PROYECTO
+────────────────────────────
+
+Proyecto:
+Sistema inteligente para la detección de mensajes ocultos en imágenes mediante técnicas de esteganografía y Machine Learning.
+
+La app web ya está creada en Replit con FastAPI, frontend y modo mock.
+
+Ahora necesito construir la parte ML seria:
+
+- Dataset basado en BOSSBase v1.01.
+- Generación de imágenes stego mediante LSB.
+- Entrenamiento de modelo tipo SRNet-lite.
+- Uso de Google Drive para persistencia.
+- Exportación del modelo final como .pt.
+- Compatibilidad con backend/services/model_service.py en Replit.
+
+────────────────────────────
+OBJETIVO DE ESTA FASE
+────────────────────────────
+
+Crea una carpeta ML completa dentro del proyecto Replit:
+
+ml/
+├── notebooks/
+│   ├── 01_dataset_pipeline_colab.py
+│   └── 02_model_training_colab.py
+├── src/
+│   ├── dataset/
+│   │   ├── __init__.py
+│   │   ├── generate_dataset_v2.py
+│   │   ├── dataset_validator.py
+│   │   └── drive_paths.py
+│   ├── models/
+│   │   ├── __init__.py
+│   │   ├── blocks.py
+│   │   └── srnet_lite.py
+│   ├── training/
+│   │   ├── __init__.py
+│   │   ├── trainer.py
+│   │   ├── losses.py
+│   │   └── utils.py
+│   └── evaluation/
+│       ├── __init__.py
+│       ├── metrics.py
+│       └── plots.py
+└── checkpoints/
+    └── README.md
+
+Si alguno de estos archivos ya existe, revísalo y mejóralo sin romper la app actual.
+
+────────────────────────────
+GOOGLE DRIVE — OBLIGATORIO
+────────────────────────────
+
+Los notebooks de Colab deben trabajar con Google Drive.
+
+La estructura esperada en Drive debe ser:
+
+/content/drive/MyDrive/stego_project/
+├── raw/
+│   └── BOSSbase_1.01.zip
+├── cover/
+│   └── imágenes PNG limpias
+├── stego/
+│   ├── p005/
+│   ├── p010/
+│   └── p020/
+├── processed/
+│   ├── train_manifest.csv
+│   ├── val_manifest.csv
+│   └── test_manifest.csv
+├── reports/
+│   ├── dataset_validation.json
+│   ├── training_history.json
+│   ├── confusion_matrix.png
+│   ├── roc_curve.png
+│   └── metrics.json
+└── checkpoints/
+    ├── srnet_lite_best.pt
+    ├── srnet_lite_best_state_dict.pt
+    └── model_metadata.json
+
+El notebook debe montar Drive así:
+
+from google.colab import drive
+drive.mount("/content/drive")
+
+Y usar rutas persistentes de Drive, no rutas temporales únicamente en /content.
+
+Puede usar /content solo como caché temporal, pero los resultados importantes deben guardarse en Drive.
+
+────────────────────────────
+PARTE 1 — NOTEBOOK DE DATASET
+────────────────────────────
+
+Crea o mejora:
+
+ml/notebooks/01_dataset_pipeline_colab.py
+
+Debe estar separado por celdas usando formato:
+
+# %% [markdown]
+# Explicación
+
+# %%
+# Código
+
+Este notebook debe hacer lo siguiente:
+
+1. Montar Google Drive.
+2. Crear estructura de carpetas en:
+
+/content/drive/MyDrive/stego_project/
+
+3. Descargar BOSSBase v1.01 solo si no existe ya en Drive.
+4. Descomprimir BOSSBase solo si todavía no existen los PGM.
+5. Verificar que existan aproximadamente 10.000 archivos .pgm.
+6. Convertir PGM a PNG sin destruir la información.
+7. Guardar las imágenes limpias en:
+
+/content/drive/MyDrive/stego_project/cover/
+
+8. Generar dataset stego usando LSB con múltiples payloads:
+
+- 0.05 → p005
+- 0.10 → p010
+- 0.20 → p020
+
+9. Guardar cada payload en:
+
+/content/drive/MyDrive/stego_project/stego/p005/
+/content/drive/MyDrive/stego_project/stego/p010/
+/content/drive/MyDrive/stego_project/stego/p020/
+
+10. Mantener separación clara entre cover y stego.
+11. Crear manifests CSV con columnas:
+
+image_path,label,payload,source_image,split
+
+Donde:
+- label = 0 para cover
+- label = 1 para stego
+- payload = 0.00 para cover
+- payload = 0.05, 0.10 o 0.20 para stego
+
+12. Crear splits train/val/test por imagen base, no de forma aleatoria descontrolada.
+
+IMPORTANTE:
+Evitar leakage.
+
+Esto significa:
+Si una imagen cover entra en train, sus versiones stego p005, p010 y p020 también deben estar solo en train.
+Nunca debe pasar que la cover esté en train y su stego esté en test.
+
+13. Guardar:
+
+processed/train_manifest.csv
+processed/val_manifest.csv
+processed/test_manifest.csv
+
+14. Validar:
+- número de imágenes cover
+- número de imágenes stego por payload
+- balance de clases
+- que no exista leakage entre splits
+- que las imágenes sean legibles
+- que las dimensiones sean correctas
+- que no haya imágenes vacías/corruptas
+
+15. Guardar reporte:
+
+reports/dataset_validation.json
+
+16. Al final imprimir rutas listas para Fase 3:
+
+print("Dataset listo para entrenamiento")
+print("Train:", TRAIN_MANIFEST)
+print("Val:", VAL_MANIFEST)
+print("Test:", TEST_MANIFEST)
+print("Checkpoints:", CHECKPOINT_DIR)
+
+────────────────────────────
+REGLAS IMPORTANTES PARA EL DATASET
+────────────────────────────
+
+No repetir errores anteriores:
+
+1. No cargar todas las imágenes en RAM como arrays gigantes.
+2. No crear listas enormes innecesarias.
+3. No usar resize con interpolación para generar el dataset.
+4. No aplicar color jitter.
+5. No aplicar rotaciones arbitrarias.
+6. No mezclar cover y stego sin control.
+7. No crear splits con leakage.
+8. No guardar datos importantes solo en /content.
+9. No destruir señales LSB con transformaciones agresivas.
+
+Para el entrenamiento:
+- Usar crop 128x128 desde imágenes 512x512.
+- Usar random crop en entrenamiento.
+- Usar center crop en validación/test.
+- Usar flips horizontal/vertical solamente si no interpolan píxeles.
+- Evitar transformaciones que cambien valores de píxel de forma artificial.
+
+────────────────────────────
+PARTE 2 — GENERADOR DE DATASET
+────────────────────────────
+
+Crea o mejora:
+
+ml/src/dataset/generate_dataset_v2.py
+
+Debe implementar:
+
+1. LSB embedding randomizado.
+2. LSB embedding secuencial opcional.
+3. Payload ratio configurable.
+4. Seed reproducible.
+5. Procesamiento por archivo, no todo en RAM.
+6. Verificación de capacidad de imagen.
+7. Preservación del formato PNG.
+8. Manifest por payload.
+9. Barra de progreso con tqdm.
+10. CLI ejecutable:
+
+python ml/src/dataset/generate_dataset_v2.py \
+  --input-dir /content/drive/MyDrive/stego_project/cover \
+  --output-dir /content/drive/MyDrive/stego_project/stego/p005 \
+  --payload-ratio 0.05 \
+  --mode random \
+  --seed 42 \
+  --min-size 128
+
+Debe explicar en comentarios:
+- qué es payload ratio
+- por qué payloads bajos son más difíciles
+- por qué random LSB es más realista que LSB secuencial
+- por qué PNG es mejor que JPG para este dataset
+
+────────────────────────────
+PARTE 3 — VALIDACIÓN DEL DATASET
+────────────────────────────
+
+Crea:
+
+ml/src/dataset/dataset_validator.py
+
+Debe validar:
+
+1. Integridad de imágenes.
+2. Balance por clase.
+3. Conteo por payload.
+4. Dimensiones mínimas.
+5. Posible leakage entre train/val/test.
+6. Rutas inexistentes.
+7. Muestras corruptas.
+8. Estadísticas básicas del dataset.
+
+Debe poder ejecutarse como CLI:
+
+python ml/src/dataset/dataset_validator.py \
+  --train /content/drive/MyDrive/stego_project/processed/train_manifest.csv \
+  --val /content/drive/MyDrive/stego_project/processed/val_manifest.csv \
+  --test /content/drive/MyDrive/stego_project/processed/test_manifest.csv \
+  --output /content/drive/MyDrive/stego_project/reports/dataset_validation.json
+
+────────────────────────────
+PARTE 4 — MODELO SRNET-LITE
+────────────────────────────
+
+Crea:
+
+ml/src/models/blocks.py
+ml/src/models/srnet_lite.py
+
+NO uses una CNN genérica.
+NO uses modelos preentrenados de ImageNet.
+NO uses ResNet preentrenado.
+
+Implementa una arquitectura inspirada en SRNet-lite para estegoanálisis:
+
+1. Capa inicial HPF/SRM fija no entrenable.
+2. Bloques convolucionales para ruido residual.
+3. BatchNorm.
+4. Activaciones adecuadas.
+5. Skip connections.
+6. Global Average Pooling.
+7. Clasificador binario final.
+8. Salida logit para usar BCEWithLogitsLoss.
+
+El modelo debe aceptar input:
+
+[B, 3, 128, 128]
+
+y devolver:
+
+[B]
+
+o
+
+[B, 1]
+
+Incluye función:
+
+build_srnet_lite()
+
+Incluye prueba rápida:
+
+if __name__ == "__main__":
+    model = build_srnet_lite()
+    x = torch.randn(2, 3, 128, 128)
+    y = model(x)
+    print(y.shape)
+
+Explica en comentarios:
+- por qué HPF ayuda en estegoanálisis
+- por qué se analiza ruido residual y no contenido semántico
+- por qué no usar modelos preentrenados en ImageNet
+
+────────────────────────────
+PARTE 5 — NOTEBOOK DE ENTRENAMIENTO EN COLAB
+────────────────────────────
+
+Crea:
+
+ml/notebooks/02_model_training_colab.py
+
+Debe estar listo para copiarse a Colab y ejecutarse por celdas.
+
+Debe incluir:
+
+1. Montaje de Google Drive.
+2. Verificación de estructura:
+
+/content/drive/MyDrive/stego_project/
+
+3. Carga de manifests:
+
+processed/train_manifest.csv
+processed/val_manifest.csv
+processed/test_manifest.csv
+
+4. Dataset PyTorch eficiente:
+- No cargar todo en RAM.
+- Leer imagen bajo demanda desde image_path.
+- Crop 128x128.
+- Normalización controlada.
+- Augmentations seguras:
+  - random crop
+  - horizontal flip
+  - vertical flip
+- No usar rotaciones arbitrarias.
+- No usar color jitter.
+- No usar resize con interpolación destructiva para entrenamiento si las imágenes ya son 512x512.
+
+5. DataLoader:
+- batch_size configurable.
+- num_workers seguro para Colab.
+- pin_memory si hay GPU.
+- shuffle solo en train.
+
+6. Entrenamiento:
+- PyTorch.
+- SRNet-lite.
+- BCEWithLogitsLoss.
+- AdamW.
+- learning rate inicial 1e-4.
+- weight decay.
+- scheduler ReduceLROnPlateau o CosineAnnealing.
+- mixed precision si GPU está disponible.
+- gradient clipping.
+- early stopping basado en val_auc.
+
+7. Métricas:
+- train_loss
+- val_loss
+- accuracy
+- precision
+- recall
+- F1
+- AUC-ROC
+- matriz de confusión
+
+8. Guardado:
+Guardar en Drive:
+
+/content/drive/MyDrive/stego_project/checkpoints/srnet_lite_best.pt
+/content/drive/MyDrive/stego_project/checkpoints/srnet_lite_best_state_dict.pt
+/content/drive/MyDrive/stego_project/checkpoints/model_metadata.json
+/content/drive/MyDrive/stego_project/reports/training_history.json
+/content/drive/MyDrive/stego_project/reports/metrics.json
+/content/drive/MyDrive/stego_project/reports/confusion_matrix.png
+/content/drive/MyDrive/stego_project/reports/roc_curve.png
+
+9. Reanudación:
+Si existe checkpoint, permitir resume training opcional.
+
+10. Threshold:
+Calcular threshold recomendado usando validación.
+No asumir siempre 0.5.
+Guardar threshold en model_metadata.json.
+
+11. Evaluación final:
+Evaluar en test set solo al final.
+No usar test para ajustar hiperparámetros.
+
+12. Exportación compatible con Replit:
+Además de guardar state_dict, crea una función o celda final que indique exactamente qué archivo subir a Replit:
+
+ml/checkpoints/srnet_lite_best.pt
+ml/checkpoints/model_metadata.json
+
+Y cómo verificar que Replit dejó de estar en modo mock.
+
+────────────────────────────
+PARTE 6 — EVITAR ERRORES ANTERIORES
+────────────────────────────
+
+Toma en cuenta explícitamente estos problemas que ya ocurrieron o que queremos evitar:
+
+1. Modelo colapsando a una sola clase.
+2. val_precision = 0.
+3. val_recall = 0.
+4. accuracy cercana a azar.
+5. Overfitting rápido.
+6. Dataset pequeño o mal balanceado.
+7. Resize que destruye señales LSB.
+8. Mezclar splits con leakage.
+9. Entrenar con una CNN genérica sobre RGB sin residual/high-pass.
+10. Guardar solo en /content y perder resultados.
+11. Cargar demasiadas imágenes en RAM.
+12. No tener compatibilidad entre el checkpoint y el backend.
+
+Incluye mecanismos concretos para prevenirlo:
+
+- validación de balance antes de entrenar
+- sanity check de batches
+- impresión de distribución de labels
+- matriz de confusión por época o al final
+- AUC como métrica principal
+- early stopping por val_auc
+- threshold calibrado
+- entrenamiento con payloads múltiples
+- logs claros
+
+────────────────────────────
+PARTE 7 — INTEGRACIÓN CON REPLIT
+────────────────────────────
+
+Revisa el archivo actual:
+
+backend/services/model_service.py
+
+Y modifica o deja preparado lo necesario para que:
+
+1. Si no existe modelo, use mock_mode=True.
+2. Si existe:
+
+ml/checkpoints/srnet_lite_best.pt
+
+cargue el modelo real.
+3. Use la misma arquitectura SRNet-lite definida en:
+
+ml/src/models/srnet_lite.py
+
+4. Use el mismo preprocesamiento que el entrenamiento:
+- RGB
+- crop/resize compatible a 128x128
+- normalización igual
+- tensor [1, 3, 128, 128]
+
+5. Use el threshold guardado en:
+
+ml/checkpoints/model_metadata.json
+
+6. Devuelva:
+- prediction
+- probability
+- confidence
+- model_version
+- mock_mode=False
+
+7. Si el checkpoint falla al cargar, no debe romper la app:
+- registrar error
+- volver a mock_mode=True
+- mostrar advertencia
+
+────────────────────────────
+PARTE 8 — DOCUMENTACIÓN
+────────────────────────────
+
+Actualiza README.md con una sección:
+
+“Entrenamiento del modelo en Google Colab”
+
+Debe explicar:
+
+1. Ejecutar primero:
+
+ml/notebooks/01_dataset_pipeline_colab.py
+
+2. Luego ejecutar:
+
+ml/notebooks/02_model_training_colab.py
+
+3. Descargar desde Drive:
+
+srnet_lite_best.pt
+model_metadata.json
+
+4. Subirlos a Replit en:
+
+ml/checkpoints/
+
+5. Reiniciar la app.
+
+6. Verificar:
+
+GET /health
+
+Debe indicar:
+
+mock_mode: false
+
+────────────────────────────
+RESULTADO ESPERADO
+────────────────────────────
+
+Al finalizar, entrega:
+
+1. Lista de archivos creados/modificados.
+2. Explicación breve del flujo:
+   Colab dataset → Colab training → Drive checkpoints → Replit inference.
+3. Instrucciones de ejecución paso a paso.
+4. Cómo verificar que el dataset está bien.
+5. Cómo verificar que el entrenamiento no colapsó.
+6. Cómo subir el modelo entrenado a Replit.
+7. Cómo confirmar que la app dejó de usar mock mode.
+
+IMPORTANTE:
+No simplifiques el modelo.
+No hagas una CNN básica.
+No entrenes en Replit.
+No rompas la app web existente.
+Construye la parte ML como proyecto serio de tesis.
