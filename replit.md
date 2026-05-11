@@ -1,45 +1,58 @@
-# [Project name]
+# StegaDetect
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+Sistema inteligente para la detección de mensajes ocultos en imágenes mediante esteganografía y Machine Learning.
 
 ## Run & Operate
 
-- `pnpm --filter @workspace/api-server run dev` — run the API server (port 5000)
-- `pnpm run typecheck` — full typecheck across all packages
-- `pnpm run build` — typecheck + build all packages
-- `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
-- `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
-- Required env: `DATABASE_URL` — Postgres connection string
+- `cd artifacts/stegano-app && uvicorn main:app --host 0.0.0.0 --port 8000 --reload` — run the FastAPI app
+- Workflow: **StegaDetect** (auto-starts on port 8000)
 
 ## Stack
 
-- pnpm workspaces, Node.js 24, TypeScript 5.9
-- API: Express 5
-- DB: PostgreSQL + Drizzle ORM
-- Validation: Zod (`zod/v4`), `drizzle-zod`
-- API codegen: Orval (from OpenAPI spec)
-- Build: esbuild (CJS bundle)
+- Python 3.11, FastAPI, Uvicorn
+- ML: PyTorch (optional — mock mode if no checkpoint)
+- PDF: ReportLab
+- Frontend: HTML5, Bootstrap 5.3, Vanilla JS
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- `artifacts/stegano-app/main.py` — FastAPI entry point
+- `artifacts/stegano-app/backend/core/config.py` — all constants and paths
+- `artifacts/stegano-app/backend/domain/analysis_result.py` — AnalysisResult entity
+- `artifacts/stegano-app/backend/services/model_service.py` — PyTorch inference + mock fallback
+- `artifacts/stegano-app/backend/services/report_service.py` — PDF generation
+- `artifacts/stegano-app/backend/api/routes.py` — API endpoints
+- `artifacts/stegano-app/frontend/` — HTML/CSS/JS frontend
+- `artifacts/stegano-app/ml/checkpoints/` — place .pt checkpoint here
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- Monolithic FastAPI app: simpler than microservices, appropriate for Replit prototype
+- Mock mode is hash-based (deterministic): same image always returns same result for reproducible testing
+- Frontend is served directly from FastAPI via StaticFiles + HTMLResponse — no separate server needed
+- Results stored in `results.json` flat file — adequate for prototype, replace with DB for production
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+Upload an image (PNG/JPG/JPEG), analyze it for hidden messages via LSB steganography detection, view probability/confidence result, download PDF report. Works in mock mode without a trained model.
 
 ## User preferences
 
-_Populate as you build — explicit user instructions worth remembering across sessions._
+- Python/FastAPI backend, not Node.js
+- No Docker, Redis, Celery, or PostgreSQL
+- Monolithic modular architecture
+- Mock/fallback mode mandatory (app must work without trained model)
+- PDF report generation required
+- Code should be commented and readable for academic thesis
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
+- PyTorch is NOT imported in mock mode — mock prediction uses hash-based logic only (no torch required)
+- `verifyAndReplaceArtifactToml` requires an existing artifact.toml; bootstrap via bash first
+- Disk quota on Replit: avoid running `pip install` inside the workflow command; install globally first
+- Workflow **StegaDetect** (port 8000) is the active one — the auto-generated `artifacts/stegano-app: StegaDetect` can be ignored
 
 ## Pointers
 
-- See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and package details
+- See `artifacts/stegano-app/ml/checkpoints/README.md` for model integration instructions
+- See `artifacts/stegano-app/backend/services/model_service.py` section `# ── DEFINE TU ARQUITECTURA AQUÍ ──` to add SRNet-lite class

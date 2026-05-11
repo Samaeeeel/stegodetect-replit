@@ -1,0 +1,383 @@
+Actúa como un ingeniero de software senior especializado en FastAPI, Machine Learning aplicado, visión por computador y desarrollo web académico.
+
+Quiero reconstruir en Replit una versión funcional y ordenada de mi aplicación de tesis:
+
+Título:
+Implementación de un sistema inteligente para la detección de mensajes ocultos en imágenes mediante técnicas de esteganografía y Machine Learning.
+
+Contexto importante:
+Ya tengo definido que el entrenamiento del modelo NO se hará dentro de Replit, sino en Google Colab, usando BOSSBase v1.01, generación de imágenes stego con LSB y un modelo tipo SRNet-lite / CNN especializada en estegoanálisis.
+
+En Replit quiero construir la aplicación web completa para probar el flujo del sistema:
+
+Usuario sube imagen
+↓
+Backend valida imagen
+↓
+Backend ejecuta inferencia con modelo .pt si existe
+↓
+Si el modelo no existe, usa modo fallback/mock sin romper la app
+↓
+Frontend muestra resultado
+↓
+Usuario puede descargar reporte PDF
+
+────────────────────────────
+OBJETIVO PRINCIPAL
+────────────────────────────
+
+Construir una versión funcional en Replit de la aplicación web completa, manteniendo una arquitectura limpia, modular y entendible para tesis, pero adaptada a las limitaciones de Replit.
+
+NO quiero una arquitectura demasiado pesada con Docker, Redis, Celery o PostgreSQL por ahora.
+
+Quiero una versión monolítica modular:
+
+FastAPI como backend
+Frontend HTML/CSS/JS servido desde FastAPI
+Almacenamiento local temporal
+Reporte PDF
+Modelo PyTorch opcional
+Modo mock si no existe checkpoint
+
+────────────────────────────
+REQUISITOS FUNCIONALES
+────────────────────────────
+
+1. El usuario debe poder subir una imagen PNG, JPG o JPEG.
+2. El sistema debe validar:
+   - tipo de archivo
+   - tamaño máximo
+   - que sea una imagen válida
+   - dimensiones mínimas recomendadas
+3. El sistema debe analizar la imagen.
+4. El resultado debe mostrar:
+   - “Con mensaje oculto”
+   - “Sin mensaje oculto”
+   - porcentaje de probabilidad
+   - nivel de confianza
+   - explicación breve del resultado
+5. Debe existir un botón para descargar un reporte PDF.
+6. La aplicación debe funcionar aunque todavía no exista el modelo entrenado.
+7. Si no existe el checkpoint .pt, usar un modo mock/fallback claramente identificado.
+
+────────────────────────────
+REQUISITOS TÉCNICOS PARA REPLIT
+────────────────────────────
+
+Usar:
+
+Backend:
+- Python 3.11+
+- FastAPI
+- Uvicorn
+- Pydantic
+- Pillow
+- PyTorch si es posible
+- ReportLab para PDF
+
+Frontend:
+- HTML5
+- Bootstrap 5.3
+- CSS propio
+- JavaScript Vanilla
+
+No usar por ahora:
+- Docker
+- Redis
+- Celery
+- PostgreSQL
+- Nginx
+- Microservicios
+
+Justificación:
+Esta versión será un prototipo funcional desplegable en Replit. El entrenamiento del modelo se mantiene separado en Colab.
+
+────────────────────────────
+ESTRUCTURA DE CARPETAS ESPERADA
+────────────────────────────
+
+Crea directamente esta estructura dentro del proyecto Replit:
+
+.
+├── main.py
+├── requirements.txt
+├── README.md
+├── .replit
+├── backend/
+│   ├── __init__.py
+│   ├── core/
+│   │   ├── __init__.py
+│   │   ├── config.py
+│   │   └── exceptions.py
+│   ├── domain/
+│   │   ├── __init__.py
+│   │   └── analysis_result.py
+│   ├── services/
+│   │   ├── __init__.py
+│   │   ├── image_validator.py
+│   │   ├── model_service.py
+│   │   └── report_service.py
+│   ├── api/
+│   │   ├── __init__.py
+│   │   └── routes.py
+│   └── storage/
+│       ├── uploads/
+│       ├── reports/
+│       └── results.json
+├── frontend/
+│   ├── index.html
+│   └── static/
+│       ├── css/
+│       │   └── main.css
+│       └── js/
+│           └── app.js
+└── ml/
+    └── checkpoints/
+        └── README.md
+
+────────────────────────────
+ARQUITECTURA
+────────────────────────────
+
+Usa una arquitectura modular simple:
+
+1. main.py
+   - Punto de entrada de FastAPI
+   - Sirve frontend estático
+   - Incluye rutas API
+
+2. backend/core/config.py
+   - Configuración del sistema
+   - Tamaño máximo de archivo
+   - Rutas de uploads, reports y checkpoint
+   - Extensiones permitidas
+
+3. backend/domain/analysis_result.py
+   - Entidad o dataclass AnalysisResult
+   - Campos:
+     - id
+     - filename
+     - prediction
+     - probability
+     - confidence
+     - explanation
+     - model_version
+     - created_at
+     - mock_mode
+
+4. backend/services/image_validator.py
+   - Validar archivo
+   - Validar extensión
+   - Validar MIME
+   - Validar que Pillow pueda abrir la imagen
+   - Validar dimensiones mínimas
+
+5. backend/services/model_service.py
+   - Cargar modelo .pt si existe
+   - Si no existe, activar modo mock
+   - Función predict(image_path)
+   - Preprocesamiento consistente:
+     - abrir imagen
+     - convertir RGB
+     - crop o resize controlado a 128x128
+     - normalización
+   - Si hay modelo real:
+     - usar PyTorch
+   - Si no hay modelo:
+     - devolver predicción simulada pero estable
+     - indicar mock_mode=True
+
+6. backend/services/report_service.py
+   - Generar PDF con ReportLab
+   - Incluir:
+     - nombre del archivo
+     - fecha
+     - resultado
+     - probabilidad
+     - confianza
+     - explicación
+     - versión del modelo
+     - nota académica: “Este resultado es probabilístico y depende del modelo entrenado.”
+
+7. backend/api/routes.py
+   Endpoints:
+
+   GET /
+   - Devuelve frontend
+
+   POST /api/analyze
+   - Recibe imagen
+   - Valida
+   - Guarda archivo
+   - Ejecuta inferencia
+   - Guarda resultado en results.json
+   - Devuelve JSON con resultado
+
+   GET /api/report/{analysis_id}
+   - Genera o devuelve PDF
+   - Descarga archivo PDF
+
+   GET /api/health
+   - Devuelve estado del sistema
+   - Indica si modelo real está cargado o si está en modo mock
+
+────────────────────────────
+FRONTEND
+────────────────────────────
+
+Crear una interfaz moderna y responsive con Bootstrap 5.3.
+
+Debe incluir:
+
+1. Título:
+   “Sistema inteligente de detección de esteganografía”
+
+2. Descripción breve:
+   Explicar que el sistema analiza imágenes para detectar posibles mensajes ocultos mediante Machine Learning.
+
+3. Área de carga:
+   - input file
+   - drag & drop si es posible
+   - vista previa de imagen
+
+4. Botón:
+   “Analizar imagen”
+
+5. Estados visuales:
+   - esperando imagen
+   - cargando
+   - analizando
+   - resultado exitoso
+   - error
+
+6. Resultado:
+   - badge verde o rojo según predicción
+   - porcentaje de probabilidad
+   - barra de progreso
+   - explicación textual
+   - aviso si está en modo mock
+
+7. Botón:
+   “Descargar reporte PDF”
+
+────────────────────────────
+MODO MOCK / FALLBACK
+────────────────────────────
+
+Esto es obligatorio.
+
+Si no existe:
+
+ml/checkpoints/srnet_lite_best.pt
+
+o
+
+ml/checkpoints/model.pt
+
+la app NO debe fallar.
+
+Debe funcionar así:
+
+- model_service.py detecta que no hay checkpoint
+- activa mock_mode=True
+- genera un resultado simulado pero coherente
+- el frontend debe mostrar una advertencia:
+  “El sistema está funcionando en modo demostración porque todavía no se ha cargado un modelo entrenado.”
+
+IMPORTANTE:
+El modo mock solo sirve para probar la aplicación, no debe presentarse como resultado real del modelo.
+
+────────────────────────────
+INTEGRACIÓN CON MODELO REAL
+────────────────────────────
+
+Prepara el código para que luego pueda colocar el archivo entrenado en:
+
+ml/checkpoints/srnet_lite_best.pt
+
+Cuando exista el checkpoint:
+
+- cargar el modelo con PyTorch
+- ejecutar inferencia real
+- cambiar mock_mode=False
+- mostrar model_version real
+
+Incluye comentarios claros indicando dónde adaptar la arquitectura SRNet-lite si el checkpoint requiere una clase específica.
+
+────────────────────────────
+REPORTE PDF
+────────────────────────────
+
+El PDF debe tener formato académico e incluir:
+
+- Título del sistema
+- ID del análisis
+- Nombre de archivo
+- Fecha de análisis
+- Resultado:
+  - Con mensaje oculto / Sin mensaje oculto
+- Probabilidad
+- Nivel de confianza
+- Explicación técnica breve
+- Versión del modelo
+- Indicación de si fue modo real o modo mock
+- Nota:
+  “El resultado generado por este sistema es probabilístico y debe interpretarse como apoyo técnico, no como prueba absoluta.”
+
+────────────────────────────
+README
+────────────────────────────
+
+Crear un README.md completo con:
+
+1. Descripción del proyecto
+2. Objetivo de la aplicación
+3. Estructura de carpetas
+4. Cómo ejecutar en Replit
+5. Cómo probar la aplicación
+6. Dónde colocar el modelo .pt
+7. Explicación del modo mock
+8. Endpoints disponibles
+9. Limitaciones actuales
+10. Próximos pasos:
+    - entrenar modelo final en Colab
+    - cargar checkpoint real
+    - mejorar métricas
+    - pasar de prototipo Replit a despliegue más robusto
+
+────────────────────────────
+REGLAS IMPORTANTES
+────────────────────────────
+
+1. Crea los archivos directamente en el proyecto Replit.
+2. No me des solo explicación teórica.
+3. No generes una arquitectura demasiado compleja.
+4. No uses Docker ni servicios externos.
+5. No detengas el desarrollo porque el modelo todavía no esté listo.
+6. La aplicación debe poder ejecutarse y probarse en Replit.
+7. El código debe estar comentado y ser entendible para tesis.
+8. Mantén separación clara entre:
+   - frontend
+   - backend
+   - servicios
+   - modelo
+   - reportes
+9. Si hay una decisión técnica importante, explícala brevemente en comentarios o en README.
+10. Al final, verifica que la app pueda correr con:
+
+uvicorn main:app --host 0.0.0.0 --port 8000
+
+────────────────────────────
+SALIDA ESPERADA
+────────────────────────────
+
+Al terminar, entrega:
+
+1. Lista de archivos creados
+2. Explicación breve de la arquitectura
+3. Instrucciones para ejecutar en Replit
+4. Cómo probar con una imagen
+5. Cómo saber si está en modo mock o modelo real
+6. Qué archivo debo reemplazar cuando tenga el modelo entrenado en Colab
+
+Empieza creando la estructura de carpetas y luego implementa archivo por archivo.

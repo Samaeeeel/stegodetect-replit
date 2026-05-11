@@ -1,0 +1,196 @@
+/* ── Variables ────────────────────────────────────────────────────────────── */
+:root {
+  --primary:       #1a56db;
+  --primary-dark:  #1341a3;
+  --primary-light: #eff6ff;
+  --success:       #16a34a;
+  --danger:        #dc2626;
+  --warning:       #d97706;
+  --text-muted:    #6b7280;
+  --border:        #e5e7eb;
+  --surface:       #f9fafb;
+  --radius:        0.75rem;
+}
+
+/* ── Base ─────────────────────────────────────────────────────────────────── */
+body {
+  background-color: #f3f4f6;
+  color: #111827;
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+/* ── Navbar ───────────────────────────────────────────────────────────────── */
+.bg-primary-custom {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+  box-shadow: 0 2px 8px rgba(26, 86, 219, 0.25);
+}
+
+.navbar-brand {
+  font-size: 1.1rem;
+  letter-spacing: -0.01em;
+}
+
+/* ── Hero ─────────────────────────────────────────────────────────────────── */
+.hero-section {
+  background: linear-gradient(135deg, var(--primary) 0%, #1e3a8a 100%);
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.hero-icon {
+  width: 64px;
+  height: 64px;
+  background: rgba(255,255,255,0.15);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  backdrop-filter: blur(10px);
+}
+
+.hero-icon i {
+  font-size: 1.75rem;
+  color: white;
+}
+
+.text-white-75 {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* ── Cards ────────────────────────────────────────────────────────────────── */
+.card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.card-header {
+  border-radius: var(--radius) var(--radius) 0 0 !important;
+  padding: 1rem 1.25rem;
+}
+
+/* ── Drop Zone ────────────────────────────────────────────────────────────── */
+.drop-zone {
+  border: 2px dashed var(--border);
+  border-radius: 0.5rem;
+  min-height: 200px;
+  cursor: pointer;
+  transition: border-color 0.2s, background-color 0.2s;
+  background-color: var(--surface);
+}
+
+.drop-zone:hover,
+.drop-zone:focus,
+.drop-zone.drag-over {
+  border-color: var(--primary);
+  background-color: var(--primary-light);
+  outline: none;
+}
+
+.drop-zone.drag-over {
+  border-style: solid;
+}
+
+/* ── Image preview ────────────────────────────────────────────────────────── */
+.preview-image {
+  max-width: 100%;
+  max-height: 240px;
+  border-radius: 0.5rem;
+  object-fit: contain;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+/* ── File info ────────────────────────────────────────────────────────────── */
+.file-info-box {
+  display: flex;
+  align-items: center;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  padding: 0.625rem 0.875rem;
+  font-size: 0.875rem;
+}
+
+/* ── State panels ─────────────────────────────────────────────────────────── */
+.state-panel {
+  animation: fadeIn 0.25s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Result badge ─────────────────────────────────────────────────────────── */
+.result-badge {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.75rem;
+}
+
+.result-badge.stego {
+  background: #fef2f2;
+  color: var(--danger);
+  border: 3px solid #fecaca;
+}
+
+.result-badge.cover {
+  background: #f0fdf4;
+  color: var(--success);
+  border: 3px solid #bbf7d0;
+}
+
+/* ── Progress bar ─────────────────────────────────────────────────────────── */
+.progress-bar.stego  { background-color: var(--danger); }
+.progress-bar.cover  { background-color: var(--success); }
+
+/* ── Explanation box ──────────────────────────────────────────────────────── */
+.explanation-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--primary);
+  line-height: 1.6;
+  color: #374151;
+}
+
+/* ── Info cards ───────────────────────────────────────────────────────────── */
+.info-card {
+  background: white;
+  border: 1px solid var(--border);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.info-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08) !important;
+}
+
+/* ── Footer ───────────────────────────────────────────────────────────────── */
+.footer-section {
+  background: white;
+  border-top: 1px solid var(--border);
+}
+
+/* ── Buttons ──────────────────────────────────────────────────────────────── */
+.btn-primary {
+  background: var(--primary);
+  border-color: var(--primary);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--primary-dark);
+  border-color: var(--primary-dark);
+}
+
+.btn-primary:disabled {
+  opacity: 0.45;
+}
+
+/* ── Responsive ───────────────────────────────────────────────────────────── */
+@media (max-width: 576px) {
+  .hero-section { padding: 2rem 0; }
+  .display-5    { font-size: 1.5rem; }
+}
