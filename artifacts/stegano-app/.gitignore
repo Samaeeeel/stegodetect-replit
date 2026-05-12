@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Entornos virtuales
+.env
+.venv/
+venv/
+env/
+
+# Jupyter / Colab
+.ipynb_checkpoints/
+
+# macOS
+.DS_Store
+
+# Uploads y reportes generados por la app (archivos de usuario, no del repo)
+backend/storage/uploads/*
+backend/storage/reports/*
+backend/storage/results.json
+
+# Checkpoints del modelo (archivos pesados — descargar desde Drive)
+ml/checkpoints/*.pt
+ml/checkpoints/*.pth
+ml/checkpoints/*.ckpt
+ml/checkpoints/model_metadata.json
+
+# Datasets y archivos comprimidos
+data/
+*.zip
+*.tar.gz
+*.rar
+*.7z
