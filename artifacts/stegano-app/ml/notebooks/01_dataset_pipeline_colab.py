@@ -67,10 +67,14 @@ TRAIN_MANIFEST   = PROCESSED_DIR / "train_manifest.csv"
 VAL_MANIFEST     = PROCESSED_DIR / "val_manifest.csv"
 TEST_MANIFEST    = PROCESSED_DIR / "test_manifest.csv"
 
-# BOSSBase
-BOSSBASE_ZIP     = RAW_DIR / "BOSSbase_1.01.zip"
+# BOSSBase — la URL oficial descarga un .tar.gz, NO un .zip
+# El nombre del archivo DEBE terminar en .tar.gz para que la celda de
+# extracción pueda detectar el formato correctamente con endswith(".tar.gz").
+BOSSBASE_ZIP     = RAW_DIR / "BossBase-1.01-cover.tar.gz"
 LOCAL_CACHE      = Path("/content/cache")
-BOSSBASE_EXTRACT = LOCAL_CACHE / "BOSSBase_1.01"
+# Tras extraer el tar.gz, los PGM quedan en un subdirectorio de LOCAL_CACHE.
+# Usamos rglob("*.pgm") para encontrarlos sin importar el nombre exacto del dir.
+BOSSBASE_EXTRACT = LOCAL_CACHE
 
 # ── Crear estructura de carpetas ──────────────────────────────────────────────
 for d in [RAW_DIR, COVER_DIR, STEGO_P005, STEGO_P010, STEGO_P020,
@@ -140,16 +144,16 @@ else:
 import tarfile
 import zipfile
 
-# Verificar si ya están los PGM descomprimidos
-pgm_files_in_cache = list(BOSSBASE_EXTRACT.glob("*.pgm")) if BOSSBASE_EXTRACT.exists() else []
+# Verificar si ya están los PGM descomprimidos (búsqueda recursiva)
+pgm_files_in_cache = list(LOCAL_CACHE.rglob("*.pgm"))
 
 if len(pgm_files_in_cache) >= 9000:
-    print(f"BOSSBase ya descomprimido: {len(pgm_files_in_cache)} PGM en {BOSSBASE_EXTRACT}")
+    print(f"BOSSBase ya descomprimido: {len(pgm_files_in_cache)} PGM en {LOCAL_CACHE}")
 else:
     print(f"Descomprimiendo en {LOCAL_CACHE}...")
-    BOSSBASE_EXTRACT.mkdir(parents=True, exist_ok=True)
+    LOCAL_CACHE.mkdir(parents=True, exist_ok=True)
 
-    # Detectar formato del archivo
+    # El archivo descargado es un tar.gz (la variable BOSSBASE_ZIP termina en .tar.gz)
     if str(BOSSBASE_ZIP).endswith(".tar.gz") or str(BOSSBASE_ZIP).endswith(".tgz"):
         with tarfile.open(str(BOSSBASE_ZIP), "r:gz") as tar:
             tar.extractall(str(LOCAL_CACHE))
@@ -157,7 +161,8 @@ else:
         with zipfile.ZipFile(str(BOSSBASE_ZIP), "r") as zf:
             zf.extractall(str(LOCAL_CACHE))
 
-    pgm_files_in_cache = list(BOSSBASE_EXTRACT.rglob("*.pgm"))
+    # Buscar los PGM recursivamente — el nombre del subdirectorio varía entre versiones
+    pgm_files_in_cache = list(LOCAL_CACHE.rglob("*.pgm"))
     print(f"Descomprimido: {len(pgm_files_in_cache)} archivos PGM")
 
 # Verificar cantidad esperada
@@ -182,11 +187,8 @@ else:
 from PIL import Image
 from tqdm import tqdm
 
-# Buscar todos los PGM en el directorio extraído
-all_pgm = sorted(BOSSBASE_EXTRACT.rglob("*.pgm"))
-if not all_pgm:
-    # Si la estructura de directorios es diferente, buscar recursivamente
-    all_pgm = sorted(LOCAL_CACHE.rglob("*.pgm"))
+# Buscar todos los PGM recursivamente (el subdirectorio exacto varía entre versiones de BOSSBase)
+all_pgm = sorted(LOCAL_CACHE.rglob("*.pgm"))
 
 print(f"PGM encontrados: {len(all_pgm)}")
 

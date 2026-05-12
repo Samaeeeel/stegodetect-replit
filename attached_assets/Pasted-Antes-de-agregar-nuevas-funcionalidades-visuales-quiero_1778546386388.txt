@@ -1,0 +1,57 @@
+Antes de agregar nuevas funcionalidades visuales, quiero validar que todo el pipeline ML funcione correctamente.
+
+Haz una revisión técnica completa de los archivos que acabas de crear y verifica especialmente:
+
+1. Que ml/notebooks/01_dataset_pipeline_colab.py pueda ejecutarse en Google Colab desde cero:
+   - monte Google Drive
+   - cree la estructura /content/drive/MyDrive/stego_project/
+   - descargue o reutilice BOSSBase
+   - convierta PGM a PNG
+   - genere stego p005, p010 y p020
+   - cree train_manifest.csv, val_manifest.csv y test_manifest.csv
+   - evite leakage entre splits
+   - guarde dataset_validation.json
+
+2. Que ml/notebooks/02_model_training_colab.py pueda ejecutarse después del notebook 01:
+   - lea correctamente los manifests
+   - cargue imágenes desde Drive sin cargar todo en RAM
+   - use SRNet-lite real, no una CNN genérica
+   - use BCEWithLogitsLoss correctamente
+   - calcule AUC, F1, precision, recall y matriz de confusión
+   - use early stopping por val_auc
+   - guarde srnet_lite_best.pt
+   - guarde model_metadata.json
+   - calcule threshold óptimo
+   - evalúe test solo al final
+
+3. Revisa compatibilidad exacta entre:
+   - ml/src/models/srnet_lite.py
+   - ml/notebooks/02_model_training_colab.py
+   - backend/services/model_service.py
+
+Quiero asegurarme de que el checkpoint generado en Colab pueda cargarse en Replit sin errores de arquitectura, nombres de capas o state_dict.
+
+4. Verifica que backend/services/model_service.py:
+   - cargue ml/checkpoints/srnet_lite_best.pt
+   - lea ml/checkpoints/model_metadata.json
+   - use el mismo image_size
+   - use el mismo threshold
+   - use el mismo preprocesamiento que entrenamiento
+   - si falla el checkpoint, vuelva a mock_mode sin romper la app
+
+5. Ejecuta pruebas rápidas dentro de Replit:
+   - import de ml/src/models/srnet_lite.py
+   - forward pass con torch.randn(1, 3, 128, 128)
+   - import de model_service.py
+   - GET /health
+   - POST /analyze con una imagen de prueba si es posible
+
+6. Si encuentras errores, corrígelos directamente.
+
+7. Al final dame:
+   - lista de problemas encontrados
+   - archivos corregidos
+   - comandos o pasos exactos para ejecutar los notebooks en Colab
+   - qué salidas debo ver para saber que el dataset está correcto
+   - qué métricas debo revisar para saber que el entrenamiento no colapsó
+   - cómo confirmar que Replit dejó de usar mock mode

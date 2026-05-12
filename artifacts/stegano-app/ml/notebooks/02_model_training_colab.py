@@ -391,9 +391,12 @@ class SRNetLite(nn.Module):
         )
         self._init()
     def _init(self):
+        # IMPORTANTE: solo inicializar capas entrenables.
+        # Los filtros SRM tienen requires_grad=False y no deben ser sobreescritos.
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
-                nn.init.kaiming_normal_(m.weight, nonlinearity="relu")
+                if m.weight.requires_grad:   # ← salta el SRM
+                    nn.init.kaiming_normal_(m.weight, nonlinearity="relu")
             elif isinstance(m, nn.BatchNorm2d):
                 nn.init.ones_(m.weight); nn.init.zeros_(m.bias)
             elif isinstance(m, nn.Linear):

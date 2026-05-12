@@ -208,19 +208,22 @@ def _build_embedded_srnet_lite():
         return np.stack([k1, k2, k3], axis=0)[:, np.newaxis]
 
     class _SRM(nn.Module):
+        # ATENCIÓN: el atributo se llama 'srm' (NO 'conv') para que las
+        # claves del state_dict coincidan con ml/src/models/blocks.py SRMLayer.
+        # La clave en el checkpoint será: "srm.srm.weight"
         def __init__(self):
             super().__init__()
-            self.conv = nn.Conv2d(3, 9, 5, padding=2, bias=False)
+            self.srm = nn.Conv2d(3, 9, 5, padding=2, bias=False)
             k = torch.from_numpy(_srm_kernels())
             w = torch.zeros(9, 3, 5, 5)
             for i in range(3):
                 for j in range(3):
                     w[i*3+j, j] = k[i, 0]
             with torch.no_grad():
-                self.conv.weight.copy_(w)
-            for p in self.conv.parameters():
+                self.srm.weight.copy_(w)
+            for p in self.srm.parameters():
                 p.requires_grad = False
-        def forward(self, x): return self.conv(x)
+        def forward(self, x): return self.srm(x)
 
     class _Res(nn.Module):
         def __init__(self, c):
@@ -264,7 +267,10 @@ def _build_embedded_srnet_lite():
             self.down3  = _Down(64, 128)
             self.stage4 = nn.Sequential(_Res(128), _Res(128))
             self.attn4  = _Attn(128)
-            self.clf    = nn.Sequential(
+            # ATENCIÓN: el atributo se llama 'classifier' (NO 'clf') para que las
+            # claves del state_dict coincidan con ml/src/models/srnet_lite.py.
+            # Las claves en el checkpoint serán: "classifier.2.weight", etc.
+            self.classifier = nn.Sequential(
                 nn.AdaptiveAvgPool2d(1), nn.Flatten(),
                 nn.Dropout(0.5), nn.Linear(128,64), nn.ReLU(True),
                 nn.Dropout(0.25), nn.Linear(64,1))
@@ -273,7 +279,7 @@ def _build_embedded_srnet_lite():
             x = self.attn2(self.stage2(self.down1(x)))
             x = self.attn3(self.stage3(self.down2(x)))
             x = self.attn4(self.stage4(self.down3(x)))
-            return self.clf(x)
+            return self.classifier(x)
 
     return _SRNetLite
 

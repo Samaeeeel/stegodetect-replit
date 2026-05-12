@@ -30,7 +30,6 @@ Referencias:
 
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 import numpy as np
 
 
@@ -86,43 +85,31 @@ class SRMLayer(nn.Module):
 
     def __init__(self):
         super().__init__()
-        kernels = _build_srm_kernels()   # (3, 1, 5, 5)
-
-        # Expandir a 3 canales RGB: (3, 3, 5, 5) usando mismos filtros por canal
-        # Se aplica cada uno de los 3 filtros a cada uno de los 3 canales
-        kernels_rgb = kernels.repeat(3, 1, 1, 1)  # (9, 1, 5, 5) — no, necesitamos grouped conv
-
-        # Para aplicar los 3 filtros a cada canal independientemente usamos groups=3:
-        # weight shape: (out_channels=9, in_channels/groups=1, kH=5, kW=5)
-        # con in_channels=3, groups=3 → cada grupo tiene 1 canal de entrada y 3 filtros
-        # Realmente: weight (3*3_filters, 1, 5, 5) pero queremos (3 filters × 3 channels)
-        # Alternativa más clara: procesar canal por canal
-
-        # Usamos 3 conv separadas (una por canal) con los 3 kernels SRM
+        # Conv 2D que aplica los 3 filtros SRM a los 3 canales RGB.
+        # Resultado: 9 mapas de residuo (3 filtros × 3 canales).
+        # El atributo se llama 'srm' — este nombre es parte del state_dict
+        # y DEBE coincidir con las copias embebidas en notebook 02 y model_service.py.
         self.srm = nn.Conv2d(
             in_channels=3,
-            out_channels=9,         # 3 filtros × 3 canales
+            out_channels=9,     # 3 filtros × 3 canales
             kernel_size=5,
             padding=2,
             bias=False,
             groups=1,
         )
 
-        # Construir pesos: repetir cada kernel para los 3 canales de entrada
-        # Shape final: (9, 3, 5, 5)
-        k = _build_srm_kernels()                 # (3, 1, 5, 5)
-        k_expanded = k.expand(3, 3, 5, 5)        # (3, 3, 5, 5) — 3 filtros, 3 canales
-        # Repetir los 3 filtros 3 veces para obtener (9, 3, 5, 5)
-        # Cada grupo de 3 filtros se aplica independientemente a los 3 canales
+        # Construir pesos (9, 3, 5, 5):
+        # out_channel i*3+j = filtro SRM i aplicado al canal RGB j
+        k = _build_srm_kernels()       # (3, 1, 5, 5)
         weight = torch.zeros(9, 3, 5, 5)
-        for i in range(3):      # Para cada filtro SRM
-            for j in range(3):  # Para cada canal RGB
+        for i in range(3):             # Para cada filtro SRM
+            for j in range(3):         # Para cada canal RGB
                 weight[i*3+j, j, :, :] = k[i, 0, :, :]
 
         with torch.no_grad():
             self.srm.weight.copy_(weight)
 
-        # Congelar pesos — NO entrenar los filtros SRM
+        # Congelar pesos — los filtros SRM NO se entrenan
         for param in self.srm.parameters():
             param.requires_grad = False
 
