@@ -51,7 +51,7 @@ import os
 from pathlib import Path
 
 # ── Rutas del proyecto en Drive ───────────────────────────────────────────────
-DRIVE_BASE       = Path("/content/drive/MyDrive/stego_project")
+DRIVE_BASE       = Path("/content/drive/MyDrive/stegadetect_replit")
 RAW_DIR          = DRIVE_BASE / "raw"
 COVER_DIR        = DRIVE_BASE / "cover"
 STEGO_BASE       = DRIVE_BASE / "stego"

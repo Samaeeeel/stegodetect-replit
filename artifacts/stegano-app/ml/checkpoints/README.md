@@ -25,8 +25,8 @@ En resumen:
 2. Ejecutar `ml/notebooks/02_model_training_colab.py` → entrena el modelo
 3. Al finalizar, los archivos quedan en Google Drive:
    ```
-   /MyDrive/stego_project/checkpoints/srnet_lite_best.pt
-   /MyDrive/stego_project/checkpoints/model_metadata.json
+   /MyDrive/stegadetect_replit/checkpoints/srnet_lite_best.pt
+   /MyDrive/stegadetect_replit/checkpoints/model_metadata.json
    ```
 
 ---
@@ -34,7 +34,7 @@ En resumen:
 ## Paso 2 — Descargar desde Google Drive
 
 1. Abre [drive.google.com](https://drive.google.com)
-2. Navega a `Mi unidad → stego_project → checkpoints`
+2. Navega a `Mi unidad → stegadetect_replit → checkpoints`
 3. Descarga **ambos archivos** a tu máquina local
 
 ---

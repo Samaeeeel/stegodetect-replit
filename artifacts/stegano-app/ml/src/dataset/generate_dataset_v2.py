@@ -31,8 +31,8 @@ Para estegoanálisis LSB, PNG es el único formato válido.
 
 Uso:
     python ml/src/dataset/generate_dataset_v2.py \\
-      --input-dir  /content/drive/MyDrive/stego_project/cover \\
-      --output-dir /content/drive/MyDrive/stego_project/stego/p005 \\
+      --input-dir  /content/drive/MyDrive/stegadetect_replit/cover \\
+      --output-dir /content/drive/MyDrive/stegadetect_replit/stego/p005 \\
       --payload-ratio 0.05 \\
       --mode random \\
       --seed 42 \\

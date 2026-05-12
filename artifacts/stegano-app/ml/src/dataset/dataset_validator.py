@@ -13,10 +13,10 @@ Verifica:
 
 Uso como CLI:
     python ml/src/dataset/dataset_validator.py \\
-      --train /content/drive/MyDrive/stego_project/processed/train_manifest.csv \\
-      --val   /content/drive/MyDrive/stego_project/processed/val_manifest.csv \\
-      --test  /content/drive/MyDrive/stego_project/processed/test_manifest.csv \\
-      --output /content/drive/MyDrive/stego_project/reports/dataset_validation.json
+      --train /content/drive/MyDrive/stegadetect_replit/processed/train_manifest.csv \\
+      --val   /content/drive/MyDrive/stegadetect_replit/processed/val_manifest.csv \\
+      --test  /content/drive/MyDrive/stegadetect_replit/processed/test_manifest.csv \\
+      --output /content/drive/MyDrive/stegadetect_replit/reports/dataset_validation.json
 """
 
 import json

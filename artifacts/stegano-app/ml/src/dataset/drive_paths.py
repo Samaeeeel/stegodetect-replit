@@ -19,7 +19,7 @@ class DrivePaths:
     Crea los directorios si no existen al llamar a ensure_all().
     """
 
-    def __init__(self, base: str = "/content/drive/MyDrive/stego_project"):
+    def __init__(self, base: str = "/content/drive/MyDrive/stegadetect_replit"):
         self.base = Path(base)
 
         # ── Dataset fuente ────────────────────────────────────────────────────

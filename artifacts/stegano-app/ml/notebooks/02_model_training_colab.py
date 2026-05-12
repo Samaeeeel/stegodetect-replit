@@ -54,7 +54,7 @@ from pathlib import Path
 # O copia los archivos ml/src/ al entorno de Colab
 
 # Opción A: Si subiste el repositorio a Drive
-REPO_DIR = Path("/content/drive/MyDrive/stego_project/repo")
+REPO_DIR = Path("/content/drive/MyDrive/stegadetect_replit/repo")
 if REPO_DIR.exists() and str(REPO_DIR) not in sys.path:
     sys.path.insert(0, str(REPO_DIR))
 
@@ -63,7 +63,7 @@ if Path("/content/workspace").exists() and "/content/workspace" not in sys.path:
     sys.path.insert(0, "/content/workspace")
 
 # ── Rutas del proyecto ────────────────────────────────────────────────────────
-DRIVE_BASE     = Path("/content/drive/MyDrive/stego_project")
+DRIVE_BASE     = Path("/content/drive/MyDrive/stegadetect_replit")
 TRAIN_MANIFEST = DRIVE_BASE / "processed" / "train_manifest.csv"
 VAL_MANIFEST   = DRIVE_BASE / "processed" / "val_manifest.csv"
 TEST_MANIFEST  = DRIVE_BASE / "processed" / "test_manifest.csv"

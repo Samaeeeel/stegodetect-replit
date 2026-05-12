@@ -134,7 +134,7 @@ Abre `ml/notebooks/01_dataset_pipeline_colab.py` como notebook en Google Colab:
 3. Ejecuta todas las celdas en orden
 4. El dataset queda guardado en:
    ```
-   /content/drive/MyDrive/stego_project/
+   /content/drive/MyDrive/stegadetect_replit/
    ├── cover/               ← 10.000 imágenes PNG limpias
    ├── stego/p005/          ← Stego con payload 5%
    ├── stego/p010/          ← Stego con payload 10%
@@ -152,7 +152,7 @@ Abre `ml/notebooks/02_model_training_colab.py` como notebook en Google Colab:
 1. Ejecuta todas las celdas en orden (2–4 horas con GPU T4)
 2. El checkpoint se guarda automáticamente en Drive:
    ```
-   /content/drive/MyDrive/stego_project/checkpoints/
+   /content/drive/MyDrive/stegadetect_replit/checkpoints/
    ├── srnet_lite_best.pt           ← Checkpoint completo (para reanudar)
    ├── srnet_lite_best_state_dict.pt← Solo pesos (más ligero)
    └── model_metadata.json          ← Threshold óptimo y metadatos
@@ -164,8 +164,8 @@ Desde la última celda del notebook de entrenamiento:
 
 ```python
 from google.colab import files
-files.download("/content/drive/MyDrive/stego_project/checkpoints/srnet_lite_best.pt")
-files.download("/content/drive/MyDrive/stego_project/checkpoints/model_metadata.json")
+files.download("/content/drive/MyDrive/stegadetect_replit/checkpoints/srnet_lite_best.pt")
+files.download("/content/drive/MyDrive/stegadetect_replit/checkpoints/model_metadata.json")
 ```
 
 ### Paso 4 — Subir a Replit

@@ -74,15 +74,15 @@ drive.mount('/content/drive')
 - **Error común:** Si ves `OSError: [Errno 107]`, ejecuta la celda de nuevo
 
 ### Celda 3 — Configuración de rutas
-- Crea la estructura de carpetas en `/content/drive/MyDrive/stego_project/`
+- Crea la estructura de carpetas en `/content/drive/MyDrive/stegadetect_replit/`
 - **Salida correcta:**
   ```
   Rutas configuradas:
-    Base:       /content/drive/MyDrive/stego_project
-    Cover:      /content/drive/MyDrive/stego_project/cover
-    Stego p005: /content/drive/MyDrive/stego_project/stego/p005
-    Processed:  /content/drive/MyDrive/stego_project/processed
-    Reports:    /content/drive/MyDrive/stego_project/reports
+    Base:       /content/drive/MyDrive/stegadetect_replit
+    Cover:      /content/drive/MyDrive/stegadetect_replit/cover
+    Stego p005: /content/drive/MyDrive/stegadetect_replit/stego/p005
+    Processed:  /content/drive/MyDrive/stegadetect_replit/processed
+    Reports:    /content/drive/MyDrive/stegadetect_replit/reports
   ```
 
 ### Celda 4 — Descargar BOSSBase ⚠️ REVISAR (puede tardar 15-30 min)
@@ -247,7 +247,7 @@ Tiempo: ~2 minutos
 Después de que el notebook 02 termine:
 
 1. Ve a [drive.google.com](https://drive.google.com)
-2. Navega a `Mi unidad / stego_project / checkpoints /`
+2. Navega a `Mi unidad / stegadetect_replit / checkpoints /`
 3. Descarga **ambos archivos**:
    - `srnet_lite_best.pt`
    - `model_metadata.json`
