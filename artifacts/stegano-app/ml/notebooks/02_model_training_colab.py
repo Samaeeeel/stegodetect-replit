@@ -140,6 +140,143 @@ else:
     print("[WARNING] GPU no disponible. El entrenamiento será muy lento en CPU.")
 
 # %% [markdown]
+# ## Celda 4.5 — Copiar dataset a disco local de Colab
+#
+# Google Drive es ~10-20× más lento que el disco local de Colab (/content/).
+# Leer imágenes directamente desde Drive durante el entrenamiento puede hacer
+# que cada época tarde 10-30 minutos en lugar de 2-5 minutos.
+#
+# Esta celda copia los datos a disco local UNA VEZ antes de entrenar.
+# En ejecuciones posteriores (misma sesión), detecta que ya existen y los reutiliza.
+#
+# Rutas después de esta celda:
+#   - Imágenes y manifests: /content/stegadetect_local/
+#   - Checkpoints y reportes: siguen en Google Drive
+
+# %%
+import subprocess
+import shutil
+
+# ── Configuración de caché local ─────────────────────────────────────────────
+USE_LOCAL_CACHE = True                                  # False = leer desde Drive (muy lento)
+LOCAL_BASE      = Path("/content/stegadetect_local")   # Disco SSD local de Colab (~100 GB libres)
+
+if USE_LOCAL_CACHE:
+    LOCAL_BASE.mkdir(parents=True, exist_ok=True)
+
+    # ── Copiar cover, stego y processed con rsync ──────────────────────────
+    # rsync -ah --info=progress2:
+    #   -a  = modo archivo (preserva permisos, timestamps, recursivo)
+    #   -h  = tamaños legibles para humanos
+    #   --info=progress2 = muestra progreso global (no por archivo)
+    #   --ignore-existing = salta archivos que ya existen en destino (reanudable)
+
+    dirs_to_copy = ["cover", "stego", "processed"]
+
+    for folder in dirs_to_copy:
+        src = DRIVE_BASE / folder
+        dst = LOCAL_BASE / folder
+
+        if not src.exists():
+            raise FileNotFoundError(
+                f"Carpeta no encontrada en Drive: {src}\n"
+                "Asegúrate de ejecutar primero 01_dataset_pipeline_colab.py"
+            )
+
+        dst.mkdir(parents=True, exist_ok=True)
+        n_existing = len(list(dst.rglob("*.png")))
+
+        if n_existing > 100:
+            print(f"  [Reutilizando] {folder}: {n_existing:,} archivos ya en disco local")
+        else:
+            print(f"  [Copiando] {folder} → {dst}  (esto puede tardar varios minutos)...")
+            result = subprocess.run(
+                ["rsync", "-ah", "--info=progress2", "--ignore-existing",
+                 str(src) + "/", str(dst) + "/"],
+                capture_output=False,
+            )
+            n_copied = len(list(dst.rglob("*.png")))
+            print(f"  [OK] {folder}: {n_copied:,} archivos en disco local")
+
+    # ── Generar manifests locales (reemplazar rutas Drive → local) ─────────
+    # Los manifests originales tienen rutas absolutas que apuntan a /content/drive/...
+    # Los manifests locales apuntan a /content/stegadetect_local/...
+
+    import csv as _csv
+
+    LOCAL_PROCESSED = LOCAL_BASE / "processed"
+    LOCAL_PROCESSED.mkdir(parents=True, exist_ok=True)
+
+    DRIVE_PREFIX = str(DRIVE_BASE)
+    LOCAL_PREFIX = str(LOCAL_BASE)
+
+    manifest_pairs = [
+        (DRIVE_BASE / "processed" / "train_manifest.csv", LOCAL_PROCESSED / "train_manifest.csv"),
+        (DRIVE_BASE / "processed" / "val_manifest.csv",   LOCAL_PROCESSED / "val_manifest.csv"),
+        (DRIVE_BASE / "processed" / "test_manifest.csv",  LOCAL_PROCESSED / "test_manifest.csv"),
+    ]
+
+    for drive_csv, local_csv in manifest_pairs:
+        if not drive_csv.exists():
+            raise FileNotFoundError(f"Manifest no encontrado en Drive: {drive_csv}")
+
+        with open(drive_csv, newline="", encoding="utf-8") as fin, \
+             open(local_csv, "w", newline="", encoding="utf-8") as fout:
+
+            reader = _csv.DictReader(fin)
+            writer = _csv.DictWriter(fout, fieldnames=reader.fieldnames)
+            writer.writeheader()
+
+            for row in reader:
+                row["image_path"] = row["image_path"].replace(DRIVE_PREFIX, LOCAL_PREFIX)
+                writer.writerow(row)
+
+        print(f"  [OK] Manifest local generado: {local_csv.name}")
+
+    # ── Actualizar variables de manifest a rutas locales ──────────────────
+    TRAIN_MANIFEST = LOCAL_PROCESSED / "train_manifest.csv"
+    VAL_MANIFEST   = LOCAL_PROCESSED / "val_manifest.csv"
+    TEST_MANIFEST  = LOCAL_PROCESSED / "test_manifest.csv"
+    print(f"\n  Manifests apuntan ahora a: {LOCAL_BASE}")
+
+    # ── Verificar manifests locales: detectar rutas faltantes ─────────────
+    print("\n  Verificando manifests locales...")
+
+    for manifest, name in [(TRAIN_MANIFEST, "train"), (VAL_MANIFEST, "val"), (TEST_MANIFEST, "test")]:
+        with open(manifest, newline="", encoding="utf-8") as f:
+            rows = list(_csv.DictReader(f))
+
+        total    = len(rows)
+        missing  = [r["image_path"] for r in rows if not Path(r["image_path"]).exists()]
+        n_miss   = len(missing)
+
+        status = "[OK]" if n_miss == 0 else "[ERROR]"
+        print(f"  {status} {name}: {total:,} filas | rutas faltantes: {n_miss}")
+
+        if missing:
+            print(f"       Primeros ejemplos faltantes:")
+            for p in missing[:3]:
+                print(f"         {p}")
+            raise RuntimeError(
+                f"{n_miss} rutas faltantes en {name}_manifest.csv.\n"
+                "Verifica que el rsync se completó correctamente."
+            )
+
+    # ── Ajustar num_workers según fuente de datos ─────────────────────────
+    # Con disco local: 2 workers (I/O rápido, workers aceleran la carga)
+    # Con Drive directamente: 0 workers (Drive es lento, workers causan timeouts)
+    CONFIG["num_workers"] = 2 if USE_LOCAL_CACHE else 0
+    print(f"\n  USE_LOCAL_CACHE = {USE_LOCAL_CACHE} → num_workers = {CONFIG['num_workers']}")
+    print(f"\n[OK] Dataset local listo. Tamaño en disco: ", end="")
+    result = subprocess.run(["du", "-sh", str(LOCAL_BASE)], capture_output=True, text=True)
+    print(result.stdout.split()[0] if result.returncode == 0 else "N/D")
+
+else:
+    print("[INFO] USE_LOCAL_CACHE = False — las imágenes se leerán desde Drive.")
+    print("       Esto puede ser significativamente más lento durante el entrenamiento.")
+    CONFIG["num_workers"] = 0   # Workers en 0 para evitar timeouts con Drive
+
+# %% [markdown]
 # ## Celda 5 — Dataset PyTorch
 #
 # El dataset **NO** carga todas las imágenes en RAM.
@@ -206,9 +343,11 @@ class StegoDataset(Dataset):
             with Image.open(sample["path"]) as img:
                 img_rgb = img.convert("RGB")
         except Exception as e:
-            # Si la imagen está corrupta, devolver tensor negro + mismo label
-            print(f"[WARNING] Imagen corrupta: {sample['path']}: {e}")
-            img_rgb = Image.new("RGB", (512, 512), color=0)
+            # No usar imagen negra como fallback — fallaría silenciosamente.
+            # Un error aquí indica un problema real en el dataset que debe corregirse.
+            raise RuntimeError(
+                f"No se pudo leer la imagen: {sample['path']} | Error: {e}"
+            )
 
         if self.transform:
             img_tensor = self.transform(img_rgb)
@@ -478,6 +617,64 @@ print(f"Scheduler:   CosineAnnealingLR")
 print(f"AMP:         {'Sí (FP16)' if USE_AMP else 'No (FP32)'}")
 
 # %% [markdown]
+# ## Celda 9.5 — Test de velocidad del DataLoader
+#
+# Antes de lanzar el entrenamiento completo, verifica que el DataLoader
+# carga batches a una velocidad razonable.
+#
+# Si el disco local está activo (USE_LOCAL_CACHE=True), cada batch debería
+# cargarse en <1 segundo. Si ves >3 seg/batch, algo está lento (Drive, I/O, CPU).
+#
+# Tiempos de referencia con T4 y disco local:
+#   - Buen rendimiento:  0.1 – 0.5 seg/batch → época ~1–3 min
+#   - Rendimiento medio: 0.5 – 2.0 seg/batch → época ~3–10 min
+#   - Rendimiento bajo:  > 2.0 seg/batch     → verifica USE_LOCAL_CACHE
+
+# %%
+import time as _time_module
+
+N_TEST_BATCHES = 10
+print(f"Cargando {N_TEST_BATCHES} batches de prueba desde train_loader...\n")
+
+t_start  = _time_module.time()
+t_prev   = t_start
+loader_iter = iter(train_loader)
+
+for i in range(N_TEST_BATCHES):
+    images_t, labels_t = next(loader_iter)
+    t_now  = _time_module.time()
+    dt     = t_now - t_prev
+    t_prev = t_now
+    stego_pct = labels_t.float().mean().item() * 100
+    print(f"  Batch {i+1:2d}/{N_TEST_BATCHES} | "
+          f"shape={list(images_t.shape)} | "
+          f"min={images_t.min():.3f} max={images_t.max():.3f} | "
+          f"stego={stego_pct:.1f}% | "
+          f"tiempo={dt:.2f}s")
+
+t_total = _time_module.time() - t_start
+avg_batch_time = t_total / N_TEST_BATCHES
+batches_per_epoch = len(train_loader)
+est_epoch_sec = avg_batch_time * batches_per_epoch
+est_epoch_min = est_epoch_sec / 60
+
+print(f"\n  Tiempo total para {N_TEST_BATCHES} batches: {t_total:.2f}s")
+print(f"  Tiempo promedio por batch:   {avg_batch_time:.3f}s")
+print(f"  Batches por época:           {batches_per_epoch}")
+print(f"  Tiempo estimado por época:   {est_epoch_min:.1f} min ({est_epoch_sec:.0f}s)")
+
+if avg_batch_time < 0.5:
+    print(f"\n  [OK] DataLoader rápido — el entrenamiento debería ir bien.")
+elif avg_batch_time < 2.0:
+    print(f"\n  [OK] DataLoader con velocidad media — aceptable para entrenamiento.")
+else:
+    print(f"\n  [LENTO] avg={avg_batch_time:.2f}s/batch.")
+    print(f"  Verifica que USE_LOCAL_CACHE=True y que rsync completó correctamente.")
+    print(f"  Si sigue lento, revisa num_workers o reduce batch_size.")
+
+del loader_iter  # liberar iterador
+
+# %% [markdown]
 # ## Celda 10 — Loop de entrenamiento principal
 #
 # Métricas monitoreadas por época:
@@ -489,13 +686,14 @@ print(f"AMP:         {'Sí (FP16)' if USE_AMP else 'No (FP32)'}")
 # %%
 import json
 import time
+from tqdm import tqdm
 from sklearn.metrics import roc_auc_score, accuracy_score, f1_score
 
 def train_epoch(model, loader, optimizer, criterion, device, scaler, grad_clip):
     model.train()
     total_loss = 0.0
     all_probs, all_labels = [], []
-    for images, labels in loader:
+    for images, labels in tqdm(loader, desc="Train", leave=False):
         images = images.to(device, non_blocking=True)
         labels = labels.float().to(device, non_blocking=True)
         optimizer.zero_grad(set_to_none=True)
@@ -526,7 +724,7 @@ def val_epoch(model, loader, criterion, device):
     model.eval()
     total_loss = 0.0
     all_probs, all_labels = [], []
-    for images, labels in loader:
+    for images, labels in tqdm(loader, desc="Val", leave=False):
         images = images.to(device, non_blocking=True)
         labels = labels.float().to(device, non_blocking=True)
         logits = model(images).squeeze(1)

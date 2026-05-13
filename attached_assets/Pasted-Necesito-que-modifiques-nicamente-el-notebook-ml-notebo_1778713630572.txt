@@ -1,0 +1,179 @@
+Necesito que modifiques únicamente el notebook:
+
+ml/notebooks/02_model_training_colab.py
+
+Objetivo:
+Mejorar la eficiencia, velocidad y estabilidad del entrenamiento en Google Colab evitando leer las imágenes directamente desde Google Drive durante el entrenamiento.
+
+IMPORTANTE:
+No cambies la lógica del modelo.
+No cambies la arquitectura SRNet-lite.
+No cambies la función de pérdida.
+No cambies métricas.
+No cambies generación de checkpoints.
+No cambies nombres de archivos finales.
+No entrenes el modelo.
+No descargues dataset.
+No regeneres imágenes.
+Solo optimiza el notebook para que copie el dataset a disco local de Colab antes de entrenar.
+
+Haz estos cambios:
+
+1. Agrega una sección nueva antes de crear los datasets/DataLoaders, llamada:
+
+Celda 4.5 — Copiar dataset a disco local de Colab
+
+Esta celda debe:
+
+- Definir:
+
+USE_LOCAL_CACHE = True
+DRIVE_BASE = Path("/content/drive/MyDrive/stegadetect_replit")
+LOCAL_BASE = Path("/content/stegadetect_local")
+
+- Copiar desde Drive hacia disco local:
+
+/content/drive/MyDrive/stegadetect_replit/cover
+/content/drive/MyDrive/stegadetect_replit/stego
+/content/drive/MyDrive/stegadetect_replit/processed
+
+hacia:
+
+/content/stegadetect_local/
+
+usando rsync con progreso:
+
+rsync -ah --info=progress2
+
+- Si las carpetas locales ya existen, debe reutilizarlas o actualizarlas sin borrar todo innecesariamente.
+
+2. Después de copiar, crea manifests locales.
+
+Debe leer:
+
+/content/drive/MyDrive/stegadetect_replit/processed/train_manifest.csv
+/content/drive/MyDrive/stegadetect_replit/processed/val_manifest.csv
+/content/drive/MyDrive/stegadetect_replit/processed/test_manifest.csv
+
+y generar:
+
+/content/stegadetect_local/processed/train_manifest.csv
+/content/stegadetect_local/processed/val_manifest.csv
+/content/stegadetect_local/processed/test_manifest.csv
+
+reemplazando en la columna image_path:
+
+/content/drive/MyDrive/stegadetect_replit
+
+por:
+
+/content/stegadetect_local
+
+3. Después de crear los manifests locales, actualizar las variables:
+
+TRAIN_MANIFEST = LOCAL_BASE / "processed" / "train_manifest.csv"
+VAL_MANIFEST   = LOCAL_BASE / "processed" / "val_manifest.csv"
+TEST_MANIFEST  = LOCAL_BASE / "processed" / "test_manifest.csv"
+
+Pero mantener en Drive:
+
+CHECKPOINT_DIR
+REPORTS_DIR
+CHECKPOINT_BEST
+STATE_DICT_BEST
+MODEL_METADATA
+TRAINING_HISTORY
+METRICS_JSON
+CONFUSION_MATRIX_PNG
+ROC_CURVE_PNG
+PROB_DIST_PNG
+
+Es decir:
+- imágenes y manifests se leen desde /content/stegadetect_local
+- checkpoints y reportes se guardan en Google Drive
+
+4. Agrega una verificación rápida de manifests locales.
+
+Debe imprimir para train, val y test:
+
+- total de filas
+- cantidad de rutas faltantes
+- primeros ejemplos si hay faltantes
+
+Si hay rutas faltantes, debe lanzar error y detener el notebook.
+
+5. Ajusta CONFIG["num_workers"] de forma segura.
+
+Quiero esta lógica:
+
+- Si USE_LOCAL_CACHE = True, usar num_workers = 2
+- Si USE_LOCAL_CACHE = False y se lee directo desde Drive, usar num_workers = 0
+
+No uses workers paralelos cuando las imágenes se leen directo desde Google Drive.
+
+6. En la clase StegoDataset, asegúrate de NO volver a usar imagen negra como fallback.
+
+Debe quedar así:
+
+except Exception as e:
+    raise RuntimeError(f"No se pudo leer la imagen: {sample['path']} | Error: {e}")
+
+No debe quedar:
+
+img_rgb = Image.new("RGB", (512, 512), color=0)
+
+7. Agrega una celda antes del entrenamiento llamada:
+
+Celda 9.5 — Test de velocidad del DataLoader
+
+Debe cargar 10 batches de train_loader e imprimir:
+
+- número de batch
+- shape
+- min/max
+- porcentaje stego
+- tiempo total
+- tiempo estimado por época
+
+Esto sirve para saber si el entrenamiento está avanzando antes de lanzar la Celda 10.
+
+8. Agrega progreso visible dentro del entrenamiento.
+
+Sin cambiar la lógica de entrenamiento, agrega tqdm en los loops de:
+
+train_epoch
+val_epoch
+
+para que se vea el avance de batches dentro de cada época.
+
+Ejemplo:
+
+for images, labels in tqdm(loader, desc="Train", leave=False):
+
+y en validación:
+
+for images, labels in tqdm(loader, desc="Val", leave=False):
+
+Esto no debe cambiar métricas ni resultados, solo mostrar progreso.
+
+9. No cambies:
+
+- batch_size
+- epochs
+- patience
+- lr
+- weight_decay
+- scheduler
+- modelo
+- threshold
+- evaluación final
+- generación de gráficas
+- nombres de checkpoints
+
+10. Al final, dime exactamente:
+
+- qué celdas modificaste o agregaste
+- qué rutas quedan en local
+- qué rutas siguen en Drive
+- qué debo ejecutar en Colab antes de volver a entrenar
+- cómo saber si el DataLoader ya está rápido
