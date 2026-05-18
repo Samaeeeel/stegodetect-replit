@@ -1,0 +1,15 @@
+{
+  "test_auc": 1.0,
+  "test_accuracy": 0.9998,
+  "test_precision": 1.0,
+  "test_recall": 0.9998,
+  "test_f1": 0.9999,
+  "test_loss": 0.0003,
+  "threshold": 0.0404,
+  "confusion_matrix": {
+    "TN": 1500,
+    "FP": 0,
+    "FN": 1,
+    "TP": 4499
+  }
+}

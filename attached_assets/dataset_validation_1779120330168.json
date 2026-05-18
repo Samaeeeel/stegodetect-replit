@@ -1,0 +1,34 @@
+{
+  "train": {
+    "split": "train",
+    "total": 28000,
+    "cover": 7000,
+    "stego": 21000,
+    "stego_ratio": 0.75,
+    "sources": 7000,
+    "missing_sample": 0
+  },
+  "val": {
+    "split": "val",
+    "total": 6000,
+    "cover": 1500,
+    "stego": 4500,
+    "stego_ratio": 0.75,
+    "sources": 1500,
+    "missing_sample": 0
+  },
+  "test": {
+    "split": "test",
+    "total": 6000,
+    "cover": 1500,
+    "stego": 4500,
+    "stego_ratio": 0.75,
+    "sources": 1500,
+    "missing_sample": 0
+  },
+  "leakage": {
+    "train_val": 0,
+    "train_test": 0,
+    "val_test": 0
+  }
+}
