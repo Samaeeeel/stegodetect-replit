@@ -40,5 +40,19 @@
     "label": "Sin mensaje oculto",
     "probability_percent": 58.07,
     "has_hidden_message": false
+  },
+  {
+    "id": "d301b75b-b279-4d54-a8df-a42757df934f",
+    "filename": "test_image.png",
+    "prediction": "stego",
+    "probability": 1.0,
+    "confidence": "Alta",
+    "explanation": "El análisis sugiere con un 100.0% de probabilidad que la imagen contiene información oculta mediante técnicas de esteganografía LSB. Se detectaron patrones estadísticos inusuales en los bits menos significativos.",
+    "model_version": "srnet-lite-v1.0",
+    "created_at": "2026-05-18T16:00:48.903051",
+    "mock_mode": false,
+    "label": "Con mensaje oculto",
+    "probability_percent": 100.0,
+    "has_hidden_message": true
   }
 ]

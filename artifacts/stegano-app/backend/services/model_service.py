@@ -176,8 +176,10 @@ def _load_srnet_lite(checkpoint_path: Path):
     model = SRNetLite()
 
     # Cargar pesos
-    # Si el checkpoint es completo (contiene "model_state"), extrae solo los pesos
-    state = torch.load(str(checkpoint_path), map_location="cpu")
+    # weights_only=False necesario porque el checkpoint contiene numpy scalars
+    # (guardado desde Colab con torch.save que embebe numpy._core.multiarray.scalar).
+    # El checkpoint proviene de una fuente de confianza (entrenamiento propio en Colab).
+    state = torch.load(str(checkpoint_path), map_location="cpu", weights_only=False)
     if isinstance(state, dict) and "model_state" in state:
         model.load_state_dict(state["model_state"])
         logger.info("Checkpoint completo cargado (con estado del optimizador).")
