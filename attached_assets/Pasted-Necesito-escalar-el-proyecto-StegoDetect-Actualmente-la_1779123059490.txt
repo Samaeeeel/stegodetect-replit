@@ -1,0 +1,472 @@
+Necesito escalar el proyecto StegoDetect. Actualmente la aplicación funciona como detector de esteganografía LSB usando un modelo SRNet-lite ya cargado. Ahora necesito convertirlo en un sistema más completo de ESTEGANOGRAFÍA Y ESTEOANÁLISIS, no solo un detector de cambios de bits.
+
+IMPORTANTE:
+No elimines el modelo actual.
+No elimines la funcionalidad actual de detección.
+No cambies la arquitectura del modelo SRNet-lite.
+No vuelvas a entrenar el modelo.
+No borres checkpoints.
+No dañes los endpoints actuales.
+No conviertas todo en mock.
+Debes extender la aplicación manteniendo lo que ya funciona.
+
+Contexto técnico actual:
+- El modelo actual detecta si una imagen probablemente contiene mensaje oculto.
+- El modelo usa SRNet-lite.
+- El threshold del modelo está en model_metadata.json.
+- El sistema ya tiene endpoint de análisis y generación de reporte PDF.
+- Ahora necesito agregar capacidades reales de esteganografía: ocultar información, extraer información y mostrar análisis técnico.
+
+OBJETIVO GENERAL:
+Agregar un módulo funcional de esteganografía LSB controlada por el sistema, con capacidad para:
+
+1. Ocultar texto dentro de una imagen.
+2. Ocultar archivos dentro de una imagen, por ejemplo:
+   - .txt
+   - .pdf
+   - imágenes .png/.jpg
+   - archivos binarios pequeños
+3. Extraer información oculta desde imágenes generadas por este sistema.
+4. Analizar técnicamente en qué píxeles/canales se ocultó la información.
+5. Mostrar al usuario el mensaje o archivo oculto cuando sea recuperable.
+6. Mantener el detector ML como módulo de estegoanálisis.
+7. Generar reportes PDF más técnicos.
+
+CONSIDERACIÓN ACADÉMICA IMPORTANTE:
+No prometas que el sistema puede extraer cualquier mensaje oculto de cualquier imagen externa. Debe quedar claro en la interfaz y en el backend:
+
+- Si la imagen fue generada por nuestro módulo LSB, el sistema puede extraer el payload.
+- Si la imagen es externa o fue generada por otro algoritmo desconocido, el sistema solo puede:
+  a) aplicar el detector ML,
+  b) intentar una extracción LSB estándar,
+  c) reportar si encontró o no una cabecera válida.
+- Si no existe cabecera válida, mostrar: “No se encontró payload compatible con el formato LSB del sistema”.
+
+FASE 1 — Crear módulo de esteganografía LSB
+
+Crea un nuevo servicio backend:
+
+backend/services/steganography_service.py
+
+Debe implementar una clase, por ejemplo:
+
+class LSBSteganographyService:
+
+Métodos requeridos:
+
+1. calculate_capacity(image_path, bits_per_channel=1, channels=("R","G","B"))
+
+Debe calcular:
+- ancho
+- alto
+- total de píxeles
+- canales usados
+- bits disponibles
+- bytes disponibles
+- capacidad útil restando cabecera
+- tamaño máximo recomendado del payload
+
+2. embed_payload(
+    cover_image_path,
+    payload_bytes,
+    payload_type,
+    original_filename=None,
+    mime_type=None,
+    bits_per_channel=1,
+    channels=("R","G","B"),
+    mode="sequential",
+    seed=None
+)
+
+Debe:
+- abrir la imagen con PIL
+- convertir a RGB o RGBA, pero trabajar preferentemente en RGB
+- NO guardar como JPG porque destruye LSB
+- guardar siempre salida como PNG
+- verificar capacidad antes de insertar
+- generar una imagen stego PNG
+- devolver metadatos técnicos
+
+3. extract_payload(
+    stego_image_path,
+    bits_per_channel=1,
+    channels=("R","G","B"),
+    mode="sequential",
+    seed=None
+)
+
+Debe:
+- leer bits LSB
+- reconstruir cabecera
+- validar firma/magic header
+- validar checksum
+- reconstruir bytes originales
+- devolver:
+  - payload encontrado o no
+  - tipo de payload
+  - nombre original
+  - mime type
+  - tamaño
+  - checksum
+  - mensaje texto si es texto
+  - archivo descargable si es binario/pdf/imagen
+  - posiciones utilizadas
+
+4. analyze_lsb_structure(image_path)
+
+Debe producir un análisis técnico:
+- histograma simple de LSB por canal
+- proporción de 0 y 1 por canal
+- estimación visual de aleatoriedad LSB
+- capacidad estimada
+- si encuentra cabecera del sistema o no
+- primeras posiciones usadas para extracción
+- mapa o resumen de zonas alteradas si es una imagen generada por el sistema
+
+FASE 2 — Formato propio de payload
+
+Implementa una cabecera binaria propia para que el sistema pueda saber qué hay oculto.
+
+La estructura sugerida:
+
+MAGIC = b"STEGODETECTv1"
+
+Header JSON:
+{
+  "version": "1.0",
+  "payload_type": "text" | "pdf" | "image" | "binary",
+  "filename": "...",
+  "mime_type": "...",
+  "payload_size": 12345,
+  "sha256": "...",
+  "bits_per_channel": 1,
+  "channels": ["R", "G", "B"],
+  "mode": "sequential",
+  "seed": null,
+  "created_by": "StegoDetect",
+  "algorithm": "LSB-1bit-RGB"
+}
+
+Formato final a insertar:
+
+[MAGIC][4 bytes header_length][header_json][payload_bytes]
+
+El extractor debe:
+- leer primero el MAGIC
+- leer header_length
+- leer header_json
+- leer payload_size
+- validar sha256
+- si todo está correcto, devolver el payload
+
+FASE 3 — Registro de posiciones de píxeles
+
+El sistema debe reportar dónde se ocultó la información.
+
+No es necesario mostrar millones de posiciones en pantalla, pero sí:
+
+1. Mostrar resumen:
+- píxel inicial
+- píxel final
+- total de píxeles usados
+- total de bits usados
+- canales usados
+- porcentaje de capacidad usada
+
+2. Mostrar primeras 100 posiciones:
+Ejemplo:
+[
+  {"x": 0, "y": 0, "channel": "R", "bit_index": 0},
+  {"x": 0, "y": 0, "channel": "G", "bit_index": 1},
+  {"x": 0, "y": 0, "channel": "B", "bit_index": 2}
+]
+
+3. Permitir descargar un archivo CSV con las posiciones usadas:
+analysis_positions.csv
+
+Columnas:
+x,y,channel,bit_index,payload_bit,byte_index
+
+4. Generar una imagen de mapa técnico:
+- heatmap o máscara PNG donde se marque la zona de píxeles usados
+- guardar como artifact descargable
+- mostrarla en frontend como “Mapa de inserción LSB”
+
+FASE 4 — Nuevos endpoints FastAPI
+
+Agrega endpoints nuevos sin romper los existentes.
+
+1. POST /stego/embed/text
+
+Formulario:
+- cover_image: archivo PNG/JPG
+- message: texto
+- bits_per_channel: default 1
+- channels: default RGB
+- mode: default sequential
+- seed: opcional
+
+Respuesta:
+{
+  "success": true,
+  "stego_image_url": "...",
+  "download_url": "...",
+  "capacity": {...},
+  "payload": {...},
+  "positions_summary": {...},
+  "first_positions": [...],
+  "technical_analysis": {...}
+}
+
+2. POST /stego/embed/file
+
+Formulario:
+- cover_image: imagen base
+- payload_file: archivo a ocultar
+- bits_per_channel: default 1
+- channels: default RGB
+- mode: default sequential
+- seed: opcional
+
+Debe soportar PDF, TXT, PNG, JPG y binarios pequeños.
+
+3. POST /stego/extract
+
+Formulario:
+- stego_image: imagen PNG
+
+Respuesta si encuentra payload:
+{
+  "success": true,
+  "payload_found": true,
+  "payload_type": "text/pdf/image/binary",
+  "filename": "...",
+  "mime_type": "...",
+  "payload_size": 123,
+  "sha256_valid": true,
+  "message_text": "... si es texto ...",
+  "download_payload_url": "... si es archivo ...",
+  "positions_summary": {...},
+  "first_positions": [...],
+  "technical_analysis": {...}
+}
+
+Respuesta si no encuentra payload compatible:
+{
+  "success": true,
+  "payload_found": false,
+  "message": "No se encontró payload compatible con el formato LSB del sistema.",
+  "technical_analysis": {...}
+}
+
+4. POST /stego/full-analysis
+
+Este endpoint debe combinar:
+- detector ML actual
+- análisis LSB técnico
+- intento de extracción de payload
+- capacidad estimada
+- mapa LSB si aplica
+
+Respuesta:
+{
+  "ml_detection": {...},
+  "lsb_analysis": {...},
+  "payload_extraction": {...},
+  "technical_summary": "..."
+}
+
+5. GET /stego/download/{artifact_id}
+
+Para descargar:
+- imagen stego generada
+- payload extraído
+- CSV de posiciones
+- mapa de inserción
+- reporte PDF
+
+FASE 5 — Frontend
+
+Extiende la interfaz con pestañas o secciones claras:
+
+1. “Analizar imagen”
+Debe mantener lo actual, pero ampliar resultado:
+- Resultado ML: con/sin mensaje oculto
+- Probabilidad/puntaje del modelo
+- Threshold usado
+- Modelo activo
+- Análisis LSB:
+  - capacidad
+  - distribución de LSB por canal
+  - cabecera detectada o no
+  - payload compatible encontrado o no
+- Si hay payload:
+  - mostrar mensaje oculto si es texto
+  - botón para descargar archivo oculto si es PDF/imagen/binario
+  - mostrar resumen de posiciones
+  - botón para descargar CSV de posiciones
+  - mapa técnico de píxeles usados
+
+2. “Ocultar información”
+Crear formulario con dos modos:
+
+Modo A — Ocultar texto:
+- subir imagen cover
+- escribir mensaje
+- seleccionar bits_per_channel: 1 por defecto
+- seleccionar canales: RGB por defecto
+- botón “Generar imagen estego”
+- mostrar capacidad y tamaño del mensaje
+- descargar imagen estego PNG
+- descargar reporte técnico
+
+Modo B — Ocultar archivo:
+- subir imagen cover
+- subir archivo payload
+- aceptar PDF, TXT, PNG, JPG y binarios pequeños
+- validar capacidad antes de ocultar
+- generar imagen stego PNG
+- descargar imagen stego PNG
+- descargar reporte técnico
+
+3. “Extraer información”
+- subir imagen stego
+- botón “Extraer payload”
+- si encuentra texto: mostrarlo en pantalla
+- si encuentra archivo: botón “Descargar archivo oculto”
+- mostrar metadatos:
+  - tipo
+  - nombre original
+  - tamaño
+  - sha256
+  - algoritmo
+  - bits por canal
+  - canales
+  - pixeles usados
+
+4. “Explicación técnica”
+Agregar una sección breve que explique:
+- diferencia entre esteganografía y estegoanálisis
+- que el modelo ML detecta probabilidad de información oculta
+- que la extracción solo es confiable para imágenes generadas por el formato LSB del sistema
+- que JPG puede destruir la información oculta por compresión
+- que PNG es el formato recomendado
+
+FASE 6 — Reportes PDF técnicos
+
+Extiende backend/services/report_service.py para generar reportes PDF más completos.
+
+Reporte de análisis debe incluir:
+- nombre de imagen
+- dimensiones
+- formato
+- resultado ML
+- probabilidad/puntaje
+- threshold
+- resultado LSB
+- si hay payload:
+  - tipo
+  - nombre
+  - tamaño
+  - checksum SHA256
+  - validación de integridad
+- posiciones:
+  - total de píxeles usados
+  - canales usados
+  - primeras posiciones
+- conclusiones técnicas
+
+Reporte de inserción debe incluir:
+- imagen cover
+- imagen stego generada
+- tipo de payload
+- tamaño
+- capacidad de la imagen
+- porcentaje utilizado
+- algoritmo LSB usado
+- recomendaciones de uso
+
+FASE 7 — Validaciones y límites
+
+Agregar validaciones:
+
+1. No permitir ocultar si payload excede capacidad.
+2. Mostrar capacidad antes de insertar.
+3. Advertir que JPG no es recomendado como salida.
+4. Salida siempre PNG.
+5. Limitar tamaño de payload para evitar que Replit se bloquee.
+6. Si archivo es muy grande, devolver error claro.
+7. Si imagen es muy pequeña, devolver error claro.
+8. Si no hay cabecera compatible, no inventar mensaje.
+9. No mostrar “mensaje oculto” si no se pudo reconstruir y validar.
+
+FASE 8 — Estructura sugerida de archivos
+
+Crear o modificar:
+
+backend/services/steganography_service.py
+backend/services/lsb_analysis_service.py
+backend/services/artifact_service.py
+backend/api/routes.py
+backend/domain/stego_payload.py
+backend/domain/stego_analysis_result.py
+frontend/index.html
+frontend/static/js/app.js
+frontend/static/css/main.css
+README.md
+
+Si ya existen estructuras equivalentes, reutilízalas.
+
+FASE 9 — Requisitos técnicos
+
+Usar:
+- Python
+- FastAPI
+- PIL/Pillow
+- hashlib
+- json
+- base64 si hace falta
+- csv
+- pathlib
+- uuid
+- mimetypes
+- numpy opcional para análisis LSB
+
+No agregues dependencias pesadas innecesarias.
+
+FASE 10 — Pruebas mínimas obligatorias
+
+Después de implementar, prueba:
+
+1. Ocultar texto “Hola mundo desde StegoDetect” en una imagen PNG.
+2. Descargar la imagen stego.
+3. Subir esa imagen a extracción.
+4. Confirmar que recupera exactamente:
+   “Hola mundo desde StegoDetect”
+
+5. Ocultar un PDF pequeño.
+6. Extraerlo.
+7. Confirmar que se descarga como PDF.
+
+8. Analizar una imagen limpia.
+9. Confirmar que:
+   - el ML puede dar su resultado
+   - el extractor dice que no encontró payload compatible
+   - no inventa mensaje oculto
+
+10. Verificar /health.
+
+FASE 11 — Respuesta final que debes darme
+
+Al terminar dime exactamente:
+
+1. Qué archivos creaste.
+2. Qué archivos modificaste.
+3. Qué endpoints nuevos agregaste.
+4. Cómo probar ocultar texto.
+5. Cómo probar ocultar PDF.
+6. Cómo extraer un payload.
+7. Dónde se guardan los artefactos generados.
+8. Qué limitaciones tiene el sistema.
+9. Cómo se diferencia ahora el módulo de esteganografía del módulo de estegoanálisis.
+10. Si la app sigue usando correctamente el modelo SRNet-lite actual.

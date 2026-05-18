@@ -10,9 +10,10 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 # ── Rutas de almacenamiento ───────────────────────────────────────────────────
-UPLOADS_DIR = BASE_DIR / "backend" / "storage" / "uploads"
-REPORTS_DIR = BASE_DIR / "backend" / "storage" / "reports"
-RESULTS_FILE = BASE_DIR / "backend" / "storage" / "results.json"
+UPLOADS_DIR         = BASE_DIR / "backend" / "storage" / "uploads"
+REPORTS_DIR         = BASE_DIR / "backend" / "storage" / "reports"
+STEGO_ARTIFACTS_DIR = BASE_DIR / "backend" / "storage" / "stego_artifacts"
+RESULTS_FILE        = BASE_DIR / "backend" / "storage" / "results.json"
 
 # ── Checkpoint del modelo ─────────────────────────────────────────────────────
 CHECKPOINTS_DIR = BASE_DIR / "ml" / "checkpoints"
@@ -37,5 +38,5 @@ APP_VERSION = "1.0.0"
 PORT = int(os.environ.get("PORT", 8000))
 
 # Crear directorios si no existen al importar la configuración
-for _dir in (UPLOADS_DIR, REPORTS_DIR, CHECKPOINTS_DIR):
+for _dir in (UPLOADS_DIR, REPORTS_DIR, STEGO_ARTIFACTS_DIR, CHECKPOINTS_DIR):
     _dir.mkdir(parents=True, exist_ok=True)

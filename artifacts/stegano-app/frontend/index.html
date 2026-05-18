@@ -3,15 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sistema de Detección de Esteganografía</title>
-  <link
-    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-    rel="stylesheet"
-  />
-  <link
-    href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
-    rel="stylesheet"
-  />
+  <title>StegoDetect — Esteganografía y Estegoanálisis</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
   <link rel="stylesheet" href="/static/css/main.css" />
 </head>
 <body>
@@ -28,259 +22,622 @@
         <i class="bi bi-cpu me-1"></i>Cargando...
       </span>
       <a href="/docs" target="_blank" class="btn btn-outline-light btn-sm">
-        <i class="bi bi-code-slash me-1"></i>API Docs
+        <i class="bi bi-code-slash me-1"></i>API
       </a>
     </div>
   </div>
 </nav>
 
 <!-- ── Hero ────────────────────────────────────────────────────────────────── -->
-<header class="hero-section py-5">
+<header class="hero-section py-4">
   <div class="container text-center">
-    <div class="hero-icon mb-3">
-      <i class="bi bi-eye-fill"></i>
-    </div>
-    <h1 class="display-5 fw-bold text-white mb-3">
-      Sistema Inteligente de Detección de Esteganografía
+    <div class="hero-icon mb-3"><i class="bi bi-eye-fill"></i></div>
+    <h1 class="display-6 fw-bold text-white mb-2">
+      Sistema Inteligente de Esteganografía y Estegoanálisis
     </h1>
-    <p class="lead text-white-75 mb-0 mx-auto" style="max-width: 620px;">
-      Analiza imágenes mediante Machine Learning para detectar posibles mensajes ocultos
-      usando técnicas de esteganografía LSB.
+    <p class="text-white-75 mb-0 mx-auto" style="max-width:640px;">
+      Detecta mensajes ocultos con ML · Oculta y extrae información en imágenes · Análisis técnico LSB
     </p>
   </div>
 </header>
 
 <!-- ── Mock Mode Alert ─────────────────────────────────────────────────────── -->
-<div id="mock-alert" class="container mt-4" style="display:none;">
+<div id="mock-alert" class="container mt-3" style="display:none;">
   <div class="alert alert-warning d-flex align-items-start gap-3 mb-0" role="alert">
     <i class="bi bi-exclamation-triangle-fill fs-5 mt-1 flex-shrink-0"></i>
     <div>
       <strong>Modo Demostración activo.</strong>
-      El sistema está funcionando en modo demostración porque todavía no se ha cargado
-      un modelo entrenado. Los resultados son simulados y no tienen validez científica.
-      <br>
-      <small class="text-muted">
-        Para activar el modelo real, coloca el checkpoint en
-        <code>ml/checkpoints/srnet_lite_best.pt</code>.
-      </small>
+      El sistema funciona sin modelo entrenado. Los resultados de detección ML son simulados.
+      <br><small class="text-muted">Para activar el modelo real, coloca el checkpoint en <code>ml/checkpoints/srnet_lite_best.pt</code>.</small>
     </div>
   </div>
 </div>
 
-<!-- ── Main content ────────────────────────────────────────────────────────── -->
-<main class="container my-5">
-  <div class="row g-4 justify-content-center">
+<!-- ── Tabs ────────────────────────────────────────────────────────────────── -->
+<div class="container mt-4">
+  <ul class="nav nav-tabs main-tabs" id="mainTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+      <button class="nav-link active" id="tab-analyze-btn" data-bs-toggle="tab"
+              data-bs-target="#tab-analyze" type="button" role="tab">
+        <i class="bi bi-search me-1"></i>Analizar imagen
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="tab-embed-btn" data-bs-toggle="tab"
+              data-bs-target="#tab-embed" type="button" role="tab">
+        <i class="bi bi-lock-fill me-1"></i>Ocultar información
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="tab-extract-btn" data-bs-toggle="tab"
+              data-bs-target="#tab-extract" type="button" role="tab">
+        <i class="bi bi-unlock-fill me-1"></i>Extraer información
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="tab-guide-btn" data-bs-toggle="tab"
+              data-bs-target="#tab-guide" type="button" role="tab">
+        <i class="bi bi-book me-1"></i>Guía técnica
+      </button>
+    </li>
+  </ul>
 
-    <!-- ── Upload card ──────────────────────────────────────────────────── -->
-    <div class="col-lg-5">
-      <div class="card shadow-sm h-100">
-        <div class="card-header bg-white border-bottom">
-          <h5 class="mb-0 fw-semibold">
-            <i class="bi bi-upload me-2 text-primary"></i>Subir imagen
-          </h5>
-        </div>
-        <div class="card-body d-flex flex-column gap-3">
+  <div class="tab-content tab-content-main">
 
-          <!-- Drop zone -->
-          <div
-            id="drop-zone"
-            class="drop-zone flex-grow-1 d-flex flex-column align-items-center justify-content-center text-center p-4"
-            role="button"
-            tabindex="0"
-            aria-label="Zona de carga de imagen"
-          >
-            <div id="drop-placeholder">
-              <i class="bi bi-image fs-1 text-muted mb-2 d-block"></i>
-              <p class="mb-1 fw-medium text-muted">
-                Arrastra tu imagen aquí
-              </p>
-              <p class="small text-muted mb-3">o haz clic para seleccionar</p>
-              <span class="badge bg-light text-muted border">PNG · JPG · JPEG · máx. 10 MB</span>
+    <!-- ══════════════════════════════════════════════════════════════════════
+         TAB 1 — ANALIZAR IMAGEN
+    ══════════════════════════════════════════════════════════════════════════ -->
+    <div class="tab-pane fade show active" id="tab-analyze" role="tabpanel">
+      <div class="row g-4">
+
+        <!-- Upload -->
+        <div class="col-lg-5">
+          <div class="card shadow-sm h-100">
+            <div class="card-header bg-white border-bottom">
+              <h6 class="mb-0 fw-semibold"><i class="bi bi-upload me-2 text-primary"></i>Subir imagen</h6>
             </div>
-            <img
-              id="preview-img"
-              class="preview-image"
-              src=""
-              alt="Vista previa"
-              style="display:none;"
-            />
+            <div class="card-body d-flex flex-column gap-3">
+              <div id="drop-zone" class="drop-zone flex-grow-1 d-flex flex-column align-items-center
+                   justify-content-center text-center p-4" role="button" tabindex="0">
+                <div id="drop-placeholder">
+                  <i class="bi bi-image fs-1 text-muted mb-2 d-block"></i>
+                  <p class="mb-1 fw-medium text-muted">Arrastra tu imagen aquí</p>
+                  <p class="small text-muted mb-3">o haz clic para seleccionar</p>
+                  <span class="badge bg-light text-muted border">PNG · JPG · JPEG · máx. 10 MB</span>
+                </div>
+                <img id="preview-img" class="preview-image" src="" alt="Vista previa" style="display:none;" />
+              </div>
+              <input type="file" id="file-input" accept=".png,.jpg,.jpeg" style="display:none;" />
+              <div id="file-info" class="file-info-box" style="display:none;">
+                <i class="bi bi-file-earmark-image me-2 text-primary"></i>
+                <span id="file-name" class="fw-medium"></span>
+                <span id="file-size" class="text-muted ms-2 small"></span>
+                <button id="clear-btn" class="btn btn-link btn-sm text-danger ms-auto p-0">
+                  <i class="bi bi-x-circle-fill"></i>
+                </button>
+              </div>
+              <button id="analyze-btn" class="btn btn-primary btn-lg w-100" disabled>
+                <i class="bi bi-cpu me-2"></i>Analizar imagen
+              </button>
+            </div>
           </div>
-
-          <!-- Hidden file input -->
-          <input
-            type="file"
-            id="file-input"
-            accept=".png,.jpg,.jpeg"
-            style="display:none;"
-            aria-hidden="true"
-          />
-
-          <!-- File info -->
-          <div id="file-info" class="file-info-box" style="display:none;">
-            <i class="bi bi-file-earmark-image me-2 text-primary"></i>
-            <span id="file-name" class="fw-medium"></span>
-            <span id="file-size" class="text-muted ms-2 small"></span>
-            <button
-              id="clear-btn"
-              class="btn btn-link btn-sm text-danger ms-auto p-0"
-              title="Quitar imagen"
-            >
-              <i class="bi bi-x-circle-fill"></i>
-            </button>
-          </div>
-
-          <!-- Analyze button -->
-          <button
-            id="analyze-btn"
-            class="btn btn-primary btn-lg w-100"
-            disabled
-          >
-            <i class="bi bi-cpu me-2"></i>Analizar imagen
-          </button>
-
         </div>
+
+        <!-- Result -->
+        <div class="col-lg-7">
+          <div class="card shadow-sm h-100">
+            <div class="card-header bg-white border-bottom">
+              <h6 class="mb-0 fw-semibold"><i class="bi bi-bar-chart-line me-2 text-primary"></i>Resultado del análisis</h6>
+            </div>
+            <div class="card-body">
+
+              <div id="state-idle" class="state-panel text-center py-5">
+                <i class="bi bi-arrow-left-circle fs-1 text-muted mb-3 d-block"></i>
+                <p class="text-muted mb-0">Sube una imagen y haz clic en <strong>Analizar imagen</strong>.</p>
+              </div>
+
+              <div id="state-loading" class="state-panel text-center py-5" style="display:none;">
+                <div class="spinner-border text-primary mb-3" role="status" style="width:3rem;height:3rem;"></div>
+                <p class="fw-medium mb-1">Analizando imagen...</p>
+                <p class="text-muted small mb-0">El modelo está procesando los patrones de píxeles.</p>
+              </div>
+
+              <div id="state-error" class="state-panel" style="display:none;">
+                <div class="alert alert-danger d-flex gap-3 align-items-start mb-0">
+                  <i class="bi bi-x-octagon-fill fs-5 flex-shrink-0 mt-1"></i>
+                  <div><strong>Error en el análisis</strong>
+                    <p id="error-message" class="mb-0 mt-1 small"></p></div>
+                </div>
+              </div>
+
+              <div id="state-result" class="state-panel" style="display:none;">
+                <!-- Badge principal -->
+                <div class="text-center mb-3">
+                  <div id="result-badge" class="result-badge mx-auto mb-2">
+                    <i id="result-icon" class="bi"></i>
+                  </div>
+                  <h5 id="result-label" class="fw-bold mb-1"></h5>
+                  <p id="result-filename" class="text-muted small mb-0"></p>
+                </div>
+                <!-- Probabilidad -->
+                <div class="mb-3">
+                  <div class="d-flex justify-content-between mb-1">
+                    <span class="small fw-medium text-muted">Probabilidad de detección</span>
+                    <span id="prob-text" class="small fw-bold"></span>
+                  </div>
+                  <div class="progress" style="height:10px;">
+                    <div id="prob-bar" class="progress-bar" role="progressbar" style="width:0%;"></div>
+                  </div>
+                </div>
+                <!-- Confianza + Threshold -->
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                  <span class="small text-muted">Nivel de confianza</span>
+                  <span id="confidence-badge" class="badge"></span>
+                </div>
+                <div id="threshold-row" class="d-flex justify-content-between align-items-center mb-3" style="display:none!important;">
+                  <span class="small text-muted">Threshold del modelo</span>
+                  <span id="threshold-val" class="badge bg-secondary"></span>
+                </div>
+                <!-- Explicación -->
+                <div class="explanation-box p-3 rounded mb-3">
+                  <p id="explanation-text" class="mb-0 small"></p>
+                </div>
+                <!-- Mock warning -->
+                <div id="mock-result-warning" class="alert alert-warning py-2 small mb-3" style="display:none;">
+                  <i class="bi bi-flask me-1"></i><strong>Modo Demostración:</strong> Resultado simulado.
+                </div>
+                <!-- Botones -->
+                <div class="d-flex gap-2">
+                  <button id="pdf-btn" class="btn btn-outline-secondary flex-grow-1">
+                    <i class="bi bi-file-pdf me-2"></i>Reporte PDF
+                  </button>
+                  <button id="full-analysis-btn" class="btn btn-outline-primary flex-grow-1">
+                    <i class="bi bi-layers me-2"></i>Análisis LSB completo
+                  </button>
+                </div>
+
+                <!-- Análisis LSB completo (colapsable) -->
+                <div id="full-analysis-result" class="mt-3" style="display:none;">
+                  <hr>
+                  <h6 class="fw-semibold mb-3"><i class="bi bi-diagram-3 me-2 text-primary"></i>Análisis LSB técnico</h6>
+                  <div id="lsb-stats-grid" class="row g-2 mb-3"></div>
+                  <div id="lsb-header-badge" class="mb-3"></div>
+                  <div id="lsb-randomness" class="alert alert-light py-2 small mb-3"></div>
+                  <div id="payload-found-block" class="mb-3" style="display:none;">
+                    <div class="alert alert-success py-2 mb-2">
+                      <i class="bi bi-check-circle-fill me-2"></i>
+                      <strong>Payload StegoDetect encontrado</strong>
+                    </div>
+                    <div id="payload-meta" class="tech-box p-3"></div>
+                    <div class="d-flex gap-2 mt-2">
+                      <button id="download-extracted-btn" class="btn btn-sm btn-success" style="display:none;">
+                        <i class="bi bi-download me-1"></i>Descargar archivo oculto
+                      </button>
+                      <button id="download-csv-full-btn" class="btn btn-sm btn-outline-secondary" style="display:none;">
+                        <i class="bi bi-table me-1"></i>CSV posiciones
+                      </button>
+                    </div>
+                    <div id="extracted-text-block" class="mt-2" style="display:none;">
+                      <label class="small fw-medium text-muted mb-1">Mensaje extraído:</label>
+                      <div id="extracted-text" class="tech-box p-3 font-monospace small"></div>
+                    </div>
+                  </div>
+                  <div id="payload-not-found-block" class="mb-3" style="display:none;">
+                    <div class="alert alert-secondary py-2 small mb-0">
+                      <i class="bi bi-info-circle me-2"></i>No se encontró payload compatible con el formato LSB del sistema.
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
 
-    <!-- ── Result card ──────────────────────────────────────────────────── -->
-    <div class="col-lg-5">
-      <div class="card shadow-sm h-100">
-        <div class="card-header bg-white border-bottom">
-          <h5 class="mb-0 fw-semibold">
-            <i class="bi bi-bar-chart-line me-2 text-primary"></i>Resultado del análisis
-          </h5>
-        </div>
-        <div class="card-body d-flex flex-column justify-content-center">
+    <!-- ══════════════════════════════════════════════════════════════════════
+         TAB 2 — OCULTAR INFORMACIÓN
+    ══════════════════════════════════════════════════════════════════════════ -->
+    <div class="tab-pane fade" id="tab-embed" role="tabpanel">
+      <div class="row g-4">
 
-          <!-- Estado: esperando -->
-          <div id="state-idle" class="state-panel text-center py-4">
-            <i class="bi bi-arrow-left-circle fs-1 text-muted mb-3 d-block"></i>
-            <p class="text-muted mb-0">
-              Sube una imagen y haz clic en <strong>Analizar imagen</strong>
-              para ver el resultado aquí.
-            </p>
-          </div>
-
-          <!-- Estado: analizando -->
-          <div id="state-loading" class="state-panel text-center py-4" style="display:none;">
-            <div class="spinner-border text-primary mb-3" role="status" style="width:3rem;height:3rem;">
-              <span class="visually-hidden">Analizando...</span>
+        <!-- Formulario -->
+        <div class="col-lg-6">
+          <div class="card shadow-sm">
+            <div class="card-header bg-white border-bottom">
+              <h6 class="mb-0 fw-semibold"><i class="bi bi-lock-fill me-2 text-primary"></i>Insertar payload LSB</h6>
             </div>
-            <p class="fw-medium mb-1">Analizando imagen...</p>
-            <p class="text-muted small mb-0">El modelo está procesando los patrones de píxeles.</p>
-          </div>
+            <div class="card-body">
 
-          <!-- Estado: error -->
-          <div id="state-error" class="state-panel" style="display:none;">
-            <div class="alert alert-danger d-flex gap-3 align-items-start mb-0">
-              <i class="bi bi-x-octagon-fill fs-5 flex-shrink-0 mt-1"></i>
+              <!-- Modo: texto / archivo -->
+              <div class="mb-3">
+                <label class="form-label small fw-medium">Tipo de payload</label>
+                <div class="d-flex gap-3">
+                  <div class="form-check">
+                    <input class="form-check-input" type="radio" name="embed-mode"
+                           id="embed-mode-text" value="text" checked>
+                    <label class="form-check-label" for="embed-mode-text">
+                      <i class="bi bi-chat-text me-1"></i>Texto
+                    </label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="radio" name="embed-mode"
+                           id="embed-mode-file" value="file">
+                    <label class="form-check-label" for="embed-mode-file">
+                      <i class="bi bi-file-earmark me-1"></i>Archivo
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Imagen cover -->
+              <div class="mb-3">
+                <label class="form-label small fw-medium">Imagen cover (PNG/JPG)</label>
+                <input type="file" id="embed-cover-input" class="form-control form-control-sm"
+                       accept=".png,.jpg,.jpeg">
+                <div id="embed-capacity-info" class="small text-muted mt-1" style="display:none;"></div>
+              </div>
+
+              <!-- Payload texto -->
+              <div id="embed-text-block" class="mb-3">
+                <label class="form-label small fw-medium">Mensaje a ocultar</label>
+                <textarea id="embed-message" class="form-control form-control-sm" rows="4"
+                          placeholder="Escribe el texto que deseas ocultar en la imagen..."></textarea>
+                <div id="embed-text-size" class="small text-muted mt-1"></div>
+              </div>
+
+              <!-- Payload archivo -->
+              <div id="embed-file-block" class="mb-3" style="display:none;">
+                <label class="form-label small fw-medium">Archivo a ocultar (PDF, TXT, PNG, JPG, binario)</label>
+                <input type="file" id="embed-payload-input" class="form-control form-control-sm">
+                <div class="small text-muted mt-1">Máximo 2 MB · La salida siempre será PNG.</div>
+              </div>
+
+              <!-- Opciones avanzadas -->
+              <div class="mb-3">
+                <button class="btn btn-link btn-sm p-0 text-muted" type="button"
+                        data-bs-toggle="collapse" data-bs-target="#embed-advanced">
+                  <i class="bi bi-gear me-1"></i>Opciones avanzadas
+                </button>
+                <div class="collapse" id="embed-advanced">
+                  <div class="row g-2 mt-1">
+                    <div class="col-6">
+                      <label class="form-label small">Bits por canal</label>
+                      <select id="embed-bits" class="form-select form-select-sm">
+                        <option value="1" selected>1 bit (recomendado)</option>
+                        <option value="2">2 bits (más capacidad)</option>
+                      </select>
+                    </div>
+                    <div class="col-6">
+                      <label class="form-label small">Canales</label>
+                      <select id="embed-channels" class="form-select form-select-sm">
+                        <option value="RGB" selected>RGB (3 canales)</option>
+                        <option value="RG">RG (2 canales)</option>
+                        <option value="R">R (1 canal)</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <button id="embed-btn" class="btn btn-primary w-100" disabled>
+                <i class="bi bi-lock-fill me-2"></i>Generar imagen stego
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Resultado de inserción -->
+        <div class="col-lg-6">
+          <div class="card shadow-sm h-100">
+            <div class="card-header bg-white border-bottom">
+              <h6 class="mb-0 fw-semibold"><i class="bi bi-check-circle me-2 text-success"></i>Resultado de inserción</h6>
+            </div>
+            <div class="card-body">
+              <div id="embed-state-idle" class="state-panel text-center py-5">
+                <i class="bi bi-image-alt fs-1 text-muted mb-3 d-block"></i>
+                <p class="text-muted mb-2">Configura el formulario y haz clic en <strong>Generar imagen stego</strong>.</p>
+                <p class="small text-muted mb-0">
+                  <i class="bi bi-info-circle me-1"></i>
+                  La imagen de salida siempre es PNG para preservar la información oculta.
+                  JPG destruye el LSB por compresión.
+                </p>
+              </div>
+              <div id="embed-state-loading" class="state-panel text-center py-5" style="display:none;">
+                <div class="spinner-border text-primary mb-3" role="status"></div>
+                <p class="fw-medium">Insertando payload en la imagen...</p>
+              </div>
+              <div id="embed-state-error" class="state-panel" style="display:none;">
+                <div class="alert alert-danger d-flex gap-2 align-items-start mb-0">
+                  <i class="bi bi-x-octagon-fill fs-5 flex-shrink-0 mt-1"></i>
+                  <div><strong>Error</strong><p id="embed-error-msg" class="mb-0 mt-1 small"></p></div>
+                </div>
+              </div>
+              <div id="embed-state-result" class="state-panel" style="display:none;">
+                <div class="alert alert-success d-flex align-items-center gap-2 mb-3">
+                  <i class="bi bi-check-circle-fill fs-5"></i>
+                  <strong>Imagen stego generada correctamente</strong>
+                </div>
+
+                <!-- Métricas rápidas -->
+                <div id="embed-metrics" class="row g-2 mb-3"></div>
+
+                <!-- Botones de descarga -->
+                <div class="d-grid gap-2 mb-3">
+                  <button id="dl-stego-btn" class="btn btn-success">
+                    <i class="bi bi-download me-2"></i>Descargar imagen stego PNG
+                  </button>
+                  <div class="d-flex gap-2">
+                    <button id="dl-csv-btn" class="btn btn-outline-secondary flex-grow-1 btn-sm">
+                      <i class="bi bi-table me-1"></i>CSV posiciones
+                    </button>
+                    <button id="dl-map-btn" class="btn btn-outline-secondary flex-grow-1 btn-sm">
+                      <i class="bi bi-map me-1"></i>Mapa LSB
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Resumen técnico -->
+                <div id="embed-tech-summary" class="tech-box p-3 small"></div>
+
+                <!-- Primeras posiciones -->
+                <details class="mt-3">
+                  <summary class="small text-muted cursor-pointer">Primeras 100 posiciones usadas</summary>
+                  <div id="positions-table-wrap" class="mt-2 positions-scroll"></div>
+                </details>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════════════════
+         TAB 3 — EXTRAER INFORMACIÓN
+    ══════════════════════════════════════════════════════════════════════════ -->
+    <div class="tab-pane fade" id="tab-extract" role="tabpanel">
+      <div class="row g-4">
+
+        <!-- Formulario -->
+        <div class="col-lg-5">
+          <div class="card shadow-sm">
+            <div class="card-header bg-white border-bottom">
+              <h6 class="mb-0 fw-semibold"><i class="bi bi-unlock-fill me-2 text-primary"></i>Subir imagen stego</h6>
+            </div>
+            <div class="card-body d-flex flex-column gap-3">
+              <div class="alert alert-info py-2 small mb-0">
+                <i class="bi bi-info-circle me-2"></i>
+                Solo puede extraerse información de imágenes generadas por el sistema StegoDetect
+                (con cabecera <code>STEGODETECTv1</code>).
+              </div>
               <div>
-                <strong>Error en el análisis</strong>
-                <p id="error-message" class="mb-0 mt-1 small"></p>
+                <label class="form-label small fw-medium">Imagen stego PNG</label>
+                <input type="file" id="extract-input" class="form-control form-control-sm"
+                       accept=".png,.jpg,.jpeg">
+              </div>
+              <div class="row g-2">
+                <div class="col-6">
+                  <label class="form-label small">Bits por canal</label>
+                  <select id="extract-bits" class="form-select form-select-sm">
+                    <option value="1" selected>1 bit</option>
+                    <option value="2">2 bits</option>
+                  </select>
+                </div>
+                <div class="col-6">
+                  <label class="form-label small">Canales</label>
+                  <select id="extract-channels" class="form-select form-select-sm">
+                    <option value="RGB" selected>RGB</option>
+                    <option value="RG">RG</option>
+                    <option value="R">R</option>
+                  </select>
+                </div>
+              </div>
+              <button id="extract-btn" class="btn btn-primary w-100" disabled>
+                <i class="bi bi-search me-2"></i>Extraer payload
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Resultado de extracción -->
+        <div class="col-lg-7">
+          <div class="card shadow-sm h-100">
+            <div class="card-header bg-white border-bottom">
+              <h6 class="mb-0 fw-semibold"><i class="bi bi-file-earmark-check me-2 text-primary"></i>Resultado de extracción</h6>
+            </div>
+            <div class="card-body">
+
+              <div id="extract-state-idle" class="state-panel text-center py-5">
+                <i class="bi bi-file-earmark-image fs-1 text-muted mb-3 d-block"></i>
+                <p class="text-muted mb-0">Sube una imagen stego y haz clic en <strong>Extraer payload</strong>.</p>
+              </div>
+              <div id="extract-state-loading" class="state-panel text-center py-5" style="display:none;">
+                <div class="spinner-border text-primary mb-3" role="status"></div>
+                <p class="fw-medium">Leyendo bits LSB y reconstruyendo payload...</p>
+              </div>
+              <div id="extract-state-error" class="state-panel" style="display:none;">
+                <div class="alert alert-danger d-flex gap-2 align-items-start mb-0">
+                  <i class="bi bi-x-octagon-fill fs-5 flex-shrink-0 mt-1"></i>
+                  <div><strong>Error</strong><p id="extract-error-msg" class="mb-0 mt-1 small"></p></div>
+                </div>
+              </div>
+              <div id="extract-state-result" class="state-panel" style="display:none;">
+
+                <!-- Payload no encontrado -->
+                <div id="extract-not-found" style="display:none;">
+                  <div class="alert alert-secondary d-flex gap-2 align-items-start">
+                    <i class="bi bi-info-circle-fill fs-5 flex-shrink-0 mt-1 text-secondary"></i>
+                    <div>
+                      <strong>No se encontró payload compatible</strong>
+                      <p class="mb-0 mt-1 small">No se encontró payload compatible con el formato LSB del sistema.
+                        Esta imagen puede ser una imagen externa o fue generada con otra herramienta.</p>
+                    </div>
+                  </div>
+                  <div id="extract-lsb-info" class="tech-box p-3 small mt-2"></div>
+                </div>
+
+                <!-- Payload encontrado -->
+                <div id="extract-found" style="display:none;">
+                  <div class="alert alert-success d-flex align-items-center gap-2 mb-3">
+                    <i class="bi bi-check-circle-fill fs-5"></i>
+                    <strong>Payload recuperado correctamente</strong>
+                    <span id="extract-sha-badge" class="badge ms-auto"></span>
+                  </div>
+
+                  <!-- Metadatos del payload -->
+                  <div id="extract-meta" class="row g-2 mb-3"></div>
+
+                  <!-- Mensaje texto -->
+                  <div id="extract-text-block" style="display:none;" class="mb-3">
+                    <label class="small fw-medium text-muted mb-1">Mensaje oculto:</label>
+                    <div id="extract-text-content" class="tech-box p-3 font-monospace small"></div>
+                  </div>
+
+                  <!-- Descarga archivo -->
+                  <div id="extract-file-block" style="display:none;" class="mb-3">
+                    <button id="extract-dl-payload-btn" class="btn btn-success w-100">
+                      <i class="bi bi-download me-2"></i>Descargar archivo oculto
+                    </button>
+                  </div>
+
+                  <!-- Posiciones -->
+                  <div id="extract-positions-block" class="mb-3">
+                    <div id="extract-positions-summary" class="tech-box p-3 small mb-2"></div>
+                    <details>
+                      <summary class="small text-muted cursor-pointer">Primeras 100 posiciones de bits</summary>
+                      <div id="extract-positions-table" class="mt-2 positions-scroll"></div>
+                    </details>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
+        </div>
 
-          <!-- Estado: resultado -->
-          <div id="state-result" class="state-panel" style="display:none;">
+      </div>
+    </div>
 
-            <!-- Badge principal -->
-            <div class="text-center mb-4">
-              <div id="result-badge" class="result-badge mx-auto mb-2">
-                <i id="result-icon" class="bi"></i>
+    <!-- ══════════════════════════════════════════════════════════════════════
+         TAB 4 — GUÍA TÉCNICA
+    ══════════════════════════════════════════════════════════════════════════ -->
+    <div class="tab-pane fade" id="tab-guide" role="tabpanel">
+      <div class="row g-4">
+        <div class="col-lg-8 mx-auto">
+
+          <div class="card shadow-sm mb-4">
+            <div class="card-body p-4">
+              <h5 class="fw-bold text-primary mb-3"><i class="bi bi-mortarboard me-2"></i>Conceptos fundamentales</h5>
+
+              <h6 class="fw-semibold mt-3">¿Qué es la esteganografía?</h6>
+              <p class="small text-muted">La esteganografía es la técnica de ocultar información dentro de un medio portador
+              (imagen, audio, video) de forma que su existencia no sea evidente a simple vista.
+              A diferencia de la criptografía, que cifra el contenido del mensaje, la esteganografía
+              oculta la <em>existencia</em> del mensaje.</p>
+
+              <h6 class="fw-semibold mt-3">¿Qué es el estegoanálisis?</h6>
+              <p class="small text-muted">El estegoanálisis es la disciplina opuesta: busca detectar si una imagen
+              (u otro medio) contiene información oculta. Este sistema implementa estegoanálisis
+              estadístico (análisis de distribución LSB) y basado en Machine Learning (SRNet-lite).</p>
+
+              <h6 class="fw-semibold mt-3">Técnica LSB (Least Significant Bit)</h6>
+              <p class="small text-muted">En una imagen de 8 bits por canal, el bit menos significativo (LSB) de cada
+              píxel contribuye apenas 1 unidad de intensidad. Modificar este bit es prácticamente
+              imperceptible al ojo humano. Al reemplazar los LSBs de los canales R, G y B de forma
+              secuencial, se puede insertar datos a una tasa de 3 bits por píxel.</p>
+
+              <div class="info-formula p-3 rounded mt-2 mb-3">
+                <code class="small">
+                  Capacidad (bytes) = (ancho × alto × canales × bits_por_canal) / 8 − cabecera
+                </code>
               </div>
-              <h4 id="result-label" class="fw-bold mb-1"></h4>
-              <p id="result-filename" class="text-muted small mb-0"></p>
-            </div>
 
-            <!-- Probabilidad -->
-            <div class="mb-3">
-              <div class="d-flex justify-content-between mb-1">
-                <span class="small fw-medium text-muted">Probabilidad de detección</span>
-                <span id="prob-text" class="small fw-bold"></span>
+              <h6 class="fw-semibold mt-3">Formato del protocolo StegoDetect</h6>
+              <p class="small text-muted mb-2">Toda imagen generada por este sistema contiene una cabecera binaria que permite
+              identificar y extraer el payload de forma confiable:</p>
+              <div class="info-formula p-3 rounded font-monospace small">
+                [MAGIC 13B: "STEGODETECTv1"] [header_len 4B] [header JSON] [payload bytes]
               </div>
-              <div class="progress" style="height: 10px;">
-                <div
-                  id="prob-bar"
-                  class="progress-bar"
-                  role="progressbar"
-                  style="width: 0%;"
-                ></div>
+              <p class="small text-muted mt-2">El header JSON contiene: tipo, nombre, tamaño, SHA-256, algoritmo, canales y bits por canal.</p>
+            </div>
+          </div>
+
+          <div class="card shadow-sm mb-4">
+            <div class="card-body p-4">
+              <h5 class="fw-bold text-warning mb-3"><i class="bi bi-exclamation-triangle me-2"></i>Limitaciones importantes</h5>
+              <ul class="small text-muted mb-0">
+                <li class="mb-2"><strong>JPG destruye el LSB.</strong> La compresión JPEG es lossy (con pérdida).
+                  Guardar una imagen stego como JPG elimina la información oculta. El sistema siempre
+                  genera imágenes de salida en formato PNG.</li>
+                <li class="mb-2"><strong>Extracción solo del sistema.</strong> Solo puede extraerse información de
+                  imágenes generadas por StegoDetect. Si la imagen viene de otra herramienta o es externa,
+                  el extractor reporta "no se encontró payload compatible".</li>
+                <li class="mb-2"><strong>El detector ML es probabilístico.</strong> Un AUC de 1.0 en el test set
+                  no garantiza perfección en todas las imágenes reales. El threshold óptimo (0.0404 en este
+                  modelo) fue calculado sobre el conjunto de validación.</li>
+                <li class="mb-2"><strong>Capacidad limitada.</strong> Una imagen de 512×512 px con 1 bit/canal
+                  en RGB tiene ~98 KB de capacidad útil. Para payloads grandes, usa imágenes más grandes o
+                  aumenta los bits por canal (reduce la invisibilidad).</li>
+                <li><strong>Uso académico.</strong> Este sistema es un prototipo de investigación.
+                  Los resultados deben interpretarse como evidencia técnica, no como prueba legal.</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="card shadow-sm">
+            <div class="card-body p-4">
+              <h5 class="fw-bold text-success mb-3"><i class="bi bi-diagram-3 me-2"></i>Módulos del sistema</h5>
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <div class="info-card p-3 rounded h-100">
+                    <i class="bi bi-cpu fs-4 text-primary mb-2 d-block"></i>
+                    <h6 class="fw-bold small">Detector ML — SRNet-lite</h6>
+                    <p class="small text-muted mb-0">Red neuronal convolucional entrenada sobre BOSSBase v1.01.
+                      Aplica filtros SRM para amplificar residuos de ruido y clasifica cover vs stego.</p>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="info-card p-3 rounded h-100">
+                    <i class="bi bi-bar-chart fs-4 text-primary mb-2 d-block"></i>
+                    <h6 class="fw-bold small">Análisis LSB estadístico</h6>
+                    <p class="small text-muted mb-0">Calcula histograma de bits 0/1 por canal, entropía binaria
+                      y detecta la cabecera del sistema para determinar si hay payload compatible.</p>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="info-card p-3 rounded h-100">
+                    <i class="bi bi-lock fs-4 text-primary mb-2 d-block"></i>
+                    <h6 class="fw-bold small">Módulo LSB — Inserción</h6>
+                    <p class="small text-muted mb-0">Inserta texto o archivos usando el protocolo STEGODETECTv1.
+                      Genera imagen stego PNG, CSV de posiciones y mapa visual de píxeles modificados.</p>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="info-card p-3 rounded h-100">
+                    <i class="bi bi-unlock fs-4 text-primary mb-2 d-block"></i>
+                    <h6 class="fw-bold small">Módulo LSB — Extracción</h6>
+                    <p class="small text-muted mb-0">Lee los bits LSB, verifica el MAGIC, reconstruye el header
+                      y el payload. Valida integridad con SHA-256 antes de entregar el contenido.</p>
+                  </div>
+                </div>
               </div>
             </div>
-
-            <!-- Confianza -->
-            <div class="d-flex justify-content-between align-items-center mb-3">
-              <span class="small text-muted">Nivel de confianza</span>
-              <span id="confidence-badge" class="badge"></span>
-            </div>
-
-            <!-- Explicación -->
-            <div class="explanation-box p-3 rounded mb-4">
-              <p id="explanation-text" class="mb-0 small"></p>
-            </div>
-
-            <!-- Mock warning -->
-            <div id="mock-result-warning" class="alert alert-warning py-2 small mb-3" style="display:none;">
-              <i class="bi bi-flask me-1"></i>
-              <strong>Modo Demostración:</strong> Este resultado es simulado.
-            </div>
-
-            <!-- PDF button -->
-            <button id="pdf-btn" class="btn btn-outline-secondary w-100">
-              <i class="bi bi-file-pdf me-2"></i>Descargar reporte PDF
-            </button>
-
           </div>
 
         </div>
       </div>
     </div>
 
-  </div>
-
-  <!-- ── Info cards ──────────────────────────────────────────────────────── -->
-  <div class="row g-3 mt-2">
-    <div class="col-md-4">
-      <div class="info-card p-4 rounded shadow-sm h-100">
-        <i class="bi bi-shield-check fs-3 text-primary mb-3 d-block"></i>
-        <h6 class="fw-bold">Detección LSB</h6>
-        <p class="small text-muted mb-0">
-          Analiza los bits menos significativos de los píxeles para identificar
-          patrones estadísticos anómalos propios de la esteganografía.
-        </p>
-      </div>
-    </div>
-    <div class="col-md-4">
-      <div class="info-card p-4 rounded shadow-sm h-100">
-        <i class="bi bi-cpu fs-3 text-primary mb-3 d-block"></i>
-        <h6 class="fw-bold">Modelo SRNet-lite</h6>
-        <p class="small text-muted mb-0">
-          Red neuronal convolucional especializada en estegoanálisis, entrenada
-          sobre imágenes del conjunto BOSSBase v1.01.
-        </p>
-      </div>
-    </div>
-    <div class="col-md-4">
-      <div class="info-card p-4 rounded shadow-sm h-100">
-        <i class="bi bi-file-earmark-pdf fs-3 text-primary mb-3 d-block"></i>
-        <h6 class="fw-bold">Reporte PDF</h6>
-        <p class="small text-muted mb-0">
-          Genera un reporte académico descargable con el resultado detallado,
-          probabilidades y explicación técnica del análisis.
-        </p>
-      </div>
-    </div>
-  </div>
-</main>
+  </div><!-- end tab-content -->
+</div><!-- end container -->
 
 <!-- ── Footer ──────────────────────────────────────────────────────────────── -->
 <footer class="footer-section py-4 mt-5">
   <div class="container text-center">
-    <p class="mb-1 fw-medium">Sistema de Detección de Esteganografía mediante Machine Learning</p>
-    <p class="small text-muted mb-0">
-      Prototipo académico · Los resultados son probabilísticos y no constituyen prueba absoluta.
-    </p>
+    <p class="mb-1 fw-medium">StegoDetect — Sistema de Esteganografía y Estegoanálisis</p>
+    <p class="small text-muted mb-0">Prototipo académico · Los resultados son probabilísticos y no constituyen prueba absoluta.</p>
   </div>
 </footer>
 

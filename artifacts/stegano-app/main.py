@@ -20,6 +20,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from backend.core.config import APP_TITLE, APP_VERSION, PORT
 from backend.api.routes import router
+from backend.api.stego_routes import stego_router
 from backend.services import model_service
 
 # Configuración de logging para que los mensajes sean legibles en Replit
@@ -54,6 +55,7 @@ if _STATIC_DIR.exists():
 
 # ── Rutas de la API ───────────────────────────────────────────────────────────
 app.include_router(router)
+app.include_router(stego_router)
 
 # ── Evento de inicio ──────────────────────────────────────────────────────────
 @app.on_event("startup")
