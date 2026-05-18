@@ -62,10 +62,14 @@ async function checkHealth() {
     if (data.mock_mode) {
       modelBadge.innerHTML = '<i class="bi bi-flask me-1"></i>Modo Demostración';
       modelBadge.className = 'badge bg-warning text-dark';
+      modelBadge.title     = '';
       mockAlert.style.display = 'block';
     } else {
-      modelBadge.innerHTML = '<i class="bi bi-cpu-fill me-1"></i>Modelo Real';
+      const thr = data.threshold != null ? ` · thr=${data.threshold}` : '';
+      const ckpt = data.checkpoint_loaded ? data.checkpoint_loaded.replace('srnet_lite_', '').replace('.pt','') : '';
+      modelBadge.innerHTML = '<i class="bi bi-cpu-fill me-1"></i>Modelo Entrenado Activo';
       modelBadge.className = 'badge bg-success';
+      modelBadge.title     = `Checkpoint: ${data.checkpoint_loaded || ''}${thr}`;
       mockAlert.style.display = 'none';
     }
   } catch {

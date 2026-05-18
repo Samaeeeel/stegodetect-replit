@@ -1,0 +1,116 @@
+Ya subí los archivos del modelo entrenado a la carpeta de checkpoints del proyecto.
+
+Actualmente la app sigue mostrando “Modo Demostración”, pero ya existen los archivos del modelo real. Necesito que corrijas únicamente la carga del modelo para que deje de usar mock mode.
+
+Archivos que deben existir en Replit:
+
+artifacts/stegano-app/ml/checkpoints/
+├── srnet_lite_best_state_dict.pt
+├── srnet_lite_best.pt
+└── model_metadata.json
+
+IMPORTANTE:
+No entrenes el modelo.
+No cambies la arquitectura.
+No cambies la lógica de predicción.
+No cambies endpoints.
+No cambies el diseño del frontend, excepto si es necesario para ocultar el badge de modo demostración cuando mock_mode sea false.
+No elimines archivos.
+Solo arregla la integración del modelo real.
+
+Tareas exactas:
+
+1. Revisa backend/services/model_service.py y la configuración de rutas.
+
+2. Corrige el loader para que busque los checkpoints en esta ruta real del proyecto:
+
+artifacts/stegano-app/ml/checkpoints/
+
+o, si el backend se ejecuta desde artifacts/stegano-app/, entonces:
+
+ml/checkpoints/
+
+Debe resolver la ruta usando Path(__file__).resolve() o BASE_DIR, no una ruta relativa frágil.
+
+3. El loader debe aceptar ambos formatos:
+
+Opción A — state_dict directo:
+ml/checkpoints/srnet_lite_best_state_dict.pt
+
+Opción B — checkpoint completo:
+ml/checkpoints/srnet_lite_best.pt
+
+Si carga srnet_lite_best_state_dict.pt:
+- usar torch.load(...)
+- pasar directamente a model.load_state_dict(...)
+
+Si carga srnet_lite_best.pt:
+- usar torch.load(...)
+- si contiene la clave "model_state", cargar checkpoint["model_state"]
+- si no, intentar cargarlo como state_dict directo
+
+4. El loader debe leer:
+
+ml/checkpoints/model_metadata.json
+
+y usar el threshold guardado ahí. En este modelo el threshold esperado es aproximadamente:
+
+0.0404
+
+5. Asegúrate de que la arquitectura definida en Replit sea exactamente compatible con la arquitectura entrenada en Colab:
+
+- input_channels: 3
+- input_size: 128
+- SRM con 9 filtros
+- use_attention: true
+- dropout_rate: 0.5
+- clase SRNetLite compatible con los nombres de capas del state_dict
+
+Si hay error de missing keys o unexpected keys, NO cambies el checkpoint. Ajusta la definición del modelo en Replit para que coincida con el modelo entrenado.
+
+6. Agrega logs claros al iniciar la app:
+
+- Current working directory
+- BASE_DIR usado
+- Ruta exacta de checkpoints
+- Lista de archivos encontrados en ml/checkpoints/
+- Qué checkpoint se intentó cargar
+- Si cargó state_dict directo o checkpoint completo
+- Threshold leído desde model_metadata.json
+- Resultado final: mock_mode false o true
+- Error exacto si no pudo cargar
+
+7. Actualiza /health para que muestre:
+
+{
+  "status": "ok",
+  "mock_mode": false,
+  "model_loaded": true,
+  "checkpoint_loaded": "srnet_lite_best_state_dict.pt",
+  "threshold": 0.0404,
+  "model_version": "srnet-lite-v1.0"
+}
+
+8. Si el modelo carga bien:
+- quitar el aviso amarillo de “Modo Demostración”
+- quitar el badge “Modo Demostración”
+- mostrar algo como “Modelo entrenado activo” o simplemente no mostrar advertencia
+
+9. Reinicia el workflow y prueba:
+
+GET /health
+
+Debe quedar:
+
+mock_mode: false
+model_loaded: true
+
+10. Después prueba subir una imagen PNG/JPG y confirma que la predicción ya viene del modelo real, no del mock.
+
+Al final dime:
+- qué ruta exacta encontró para checkpoints
+- qué archivos encontró dentro de checkpoints
+- qué checkpoint cargó
+- qué threshold está usando
+- si mock_mode quedó en false
+- si hubo algún error de compatibilidad del state_dict

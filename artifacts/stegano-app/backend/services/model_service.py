@@ -47,10 +47,11 @@ from backend.core.exceptions import ModelInferenceError
 logger = logging.getLogger(__name__)
 
 # ── Estado global del servicio ────────────────────────────────────────────────
-_model          = None          # Modelo PyTorch cargado (None en modo mock)
-_mock_mode: bool = True         # True mientras no exista checkpoint
-_threshold: float = 0.5        # Threshold óptimo leído de model_metadata.json
+_model              = None          # Modelo PyTorch cargado (None en modo mock)
+_mock_mode: bool    = True          # True mientras no exista checkpoint válido
+_threshold: float   = 0.5          # Threshold óptimo leído de model_metadata.json
 _model_version: str = MODEL_VERSION_MOCK
+_checkpoint_loaded: str = ""        # Nombre del archivo de checkpoint cargado
 
 
 def initialize() -> None:
@@ -58,32 +59,58 @@ def initialize() -> None:
     Inicializa el servicio de modelo al arrancar la aplicación.
     Llama a esta función en el evento startup de FastAPI.
     """
-    global _model, _mock_mode, _threshold, _model_version
+    global _model, _mock_mode, _threshold, _model_version, _checkpoint_loaded
 
+    import os
+
+    # ── Logs de diagnóstico al arrancar ──────────────────────────────────────
+    cwd = os.getcwd()
+    logger.info("=" * 60)
+    logger.info("  INICIALIZANDO SERVICIO DE MODELO")
+    logger.info("  CWD:         %s", cwd)
+    logger.info("  BASE_DIR:    %s", BASE_DIR)
+    logger.info("  CHECKPOINTS: %s", CHECKPOINTS_DIR)
+
+    if CHECKPOINTS_DIR.exists():
+        files_found = [f.name for f in CHECKPOINTS_DIR.iterdir() if f.is_file()]
+        logger.info("  Archivos en checkpoints: %s", files_found)
+    else:
+        logger.warning("  Directorio checkpoints NO existe: %s", CHECKPOINTS_DIR)
+
+    logger.info("  Orden de búsqueda: %s", MODEL_CHECKPOINT_NAMES)
+    logger.info("=" * 60)
+
+    # ── Buscar y cargar checkpoint ────────────────────────────────────────────
     checkpoint_path = _find_checkpoint()
+
     if checkpoint_path:
+        logger.info("  Intentando cargar: %s", checkpoint_path)
         try:
-            _model        = _load_srnet_lite(checkpoint_path)
-            _threshold    = _load_threshold()
-            _mock_mode    = False
-            _model_version = MODEL_VERSION_REAL
-            logger.info(
-                "Modelo SRNet-lite cargado desde: %s (threshold=%.4f)",
-                checkpoint_path, _threshold
-            )
+            _model             = _load_srnet_lite(checkpoint_path)
+            _threshold         = _load_threshold()
+            _mock_mode         = False
+            _model_version     = MODEL_VERSION_REAL
+            _checkpoint_loaded = checkpoint_path.name
+            logger.info("  [OK] Checkpoint cargado: %s", checkpoint_path.name)
+            logger.info("  [OK] Threshold:          %.4f", _threshold)
+            logger.info("  [OK] mock_mode:          False  ← modelo real activo")
         except Exception as exc:
-            logger.warning(
-                "No se pudo cargar el modelo (%s). Activando modo mock.", exc
-            )
-            _model        = None
-            _mock_mode    = True
-            _model_version = MODEL_VERSION_MOCK
+            logger.warning("  [ERROR] No se pudo cargar el modelo: %s", exc)
+            logger.warning("  [FALLBACK] Activando modo mock.")
+            _model             = None
+            _mock_mode         = True
+            _model_version     = MODEL_VERSION_MOCK
+            _checkpoint_loaded = ""
     else:
         logger.info(
-            "No se encontró checkpoint en %s. Modo mock activado.", CHECKPOINTS_DIR
+            "  [INFO] No se encontró ningún checkpoint en %s.", CHECKPOINTS_DIR
         )
-        _mock_mode    = True
-        _model_version = MODEL_VERSION_MOCK
+        logger.info("  [INFO] mock_mode: True  ← modo demostración activo")
+        _mock_mode         = True
+        _model_version     = MODEL_VERSION_MOCK
+        _checkpoint_loaded = ""
+
+    logger.info("=" * 60)
 
 
 def is_mock_mode() -> bool:
@@ -92,6 +119,16 @@ def is_mock_mode() -> bool:
 
 def get_model_version() -> str:
     return _model_version
+
+
+def get_checkpoint_loaded() -> str:
+    """Nombre del archivo de checkpoint cargado, o '' si está en modo mock."""
+    return _checkpoint_loaded
+
+
+def get_threshold() -> float:
+    """Threshold de decisión activo (leído de model_metadata.json)."""
+    return _threshold
 
 
 def predict(image_path: Path) -> Tuple[str, float]:

@@ -150,14 +150,19 @@ async def download_report(analysis_id: str):
 @router.get("/health")
 async def health_check():
     """Devuelve el estado del sistema e indica si el modelo real está cargado."""
+    mock     = model_service.is_mock_mode()
+    ckpt     = model_service.get_checkpoint_loaded()
     return {
-        "status": "ok",
-        "mock_mode": model_service.is_mock_mode(),
-        "model_version": model_service.get_model_version(),
+        "status":            "ok",
+        "mock_mode":         mock,
+        "model_loaded":      not mock,
+        "checkpoint_loaded": ckpt if ckpt else None,
+        "threshold":         model_service.get_threshold() if not mock else None,
+        "model_version":     model_service.get_model_version(),
         "message": (
             "Sistema funcionando en modo demostración. "
             "Coloca el checkpoint en ml/checkpoints/ para activar el modelo real."
-        ) if model_service.is_mock_mode() else (
+        ) if mock else (
             "Modelo real cargado y listo para inferencia."
         ),
     }
