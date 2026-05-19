@@ -266,19 +266,25 @@ function initAnalyzeTab() {
     }
   }
 
-  // ── PDF ───────────────────────────────────────────────────────────────────
+  // ── PDF integrado ─────────────────────────────────────────────────────────
+  // Usa /stego/report/{id} (decisión integrada) en lugar de /report/{id}
+  // (ML-only). El ID viene del resultado de /stego/full-analysis.
   pdfBtn.addEventListener('click', async () => {
-    if (!lastAnalysisId) return;
+    const integratedId = lastFullData && lastFullData.id;
+    if (!integratedId) {
+      showAnalyzeError('No hay análisis integrado disponible. Analiza una imagen primero.');
+      return;
+    }
     pdfBtn.disabled  = true;
     pdfBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Generando...';
     try {
-      const res = await fetch(`/report/${lastAnalysisId}`);
-      if (!res.ok) throw new Error('Error generando el reporte.');
-      triggerDownload(await res.blob(), `reporte_${lastAnalysisId.slice(0,8)}.pdf`);
+      const res = await fetch(`/stego/report/${integratedId}`);
+      if (!res.ok) throw new Error('Error generando el reporte integrado.');
+      triggerDownload(await res.blob(), `reporte_integrado_${integratedId.slice(0,8)}.pdf`);
     } catch (e) { showAnalyzeError(e.message); }
     finally {
       pdfBtn.disabled  = false;
-      pdfBtn.innerHTML = '<i class="bi bi-file-pdf me-2"></i>Reporte PDF';
+      pdfBtn.innerHTML = '<i class="bi bi-file-pdf me-2"></i>Reporte integrado PDF';
     }
   });
 

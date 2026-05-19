@@ -14,6 +14,7 @@ UPLOADS_DIR         = BASE_DIR / "backend" / "storage" / "uploads"
 REPORTS_DIR         = BASE_DIR / "backend" / "storage" / "reports"
 STEGO_ARTIFACTS_DIR = BASE_DIR / "backend" / "storage" / "stego_artifacts"
 RESULTS_FILE        = BASE_DIR / "backend" / "storage" / "results.json"
+INTEGRATED_RESULTS_FILE = BASE_DIR / "backend" / "storage" / "integrated_results.json"
 
 # ── Checkpoint del modelo ─────────────────────────────────────────────────────
 CHECKPOINTS_DIR = BASE_DIR / "ml" / "checkpoints"

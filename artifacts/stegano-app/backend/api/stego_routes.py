@@ -9,14 +9,22 @@ Rutas nuevas (no rompen las existentes):
   GET  /stego/download/{id}/{type} → Descargar artefactos generados
 """
 
+import json
 import mimetypes
 import uuid
+from datetime import datetime
 from pathlib import Path
 
 from fastapi import APIRouter, File, Form, UploadFile, HTTPException
 from fastapi.responses import FileResponse, JSONResponse
 
-from backend.core.config import UPLOADS_DIR, STEGO_ARTIFACTS_DIR
+from backend.core.config import (
+    UPLOADS_DIR,
+    STEGO_ARTIFACTS_DIR,
+    REPORTS_DIR,
+    INTEGRATED_RESULTS_FILE,
+)
+from backend.services import report_service
 from backend.services.steganography_service import (
     LSBSteganographyService,
     StegoCapacityError,
@@ -245,7 +253,13 @@ async def full_analysis(
 
     final_decision = _build_final_decision(ml_result, lsb_analysis, extraction, applicability)
 
-    return JSONResponse({
+    # 7. Persistir el resultado integrado para que /stego/report/{id} pueda
+    #    generar un PDF con la decisión integrada (no solo el ML).
+    integrated_id = str(uuid.uuid4())
+    response = {
+        "id":                  integrated_id,
+        "filename":            image.filename or image_path.name,
+        "created_at":          datetime.utcnow().isoformat(),
         "final_decision":      final_decision,
         "ml_detection":        ml_result,
         "model_applicability": applicability,
@@ -254,7 +268,72 @@ async def full_analysis(
         "payload_extraction":  extraction,
         "capacity":            capacity,
         "technical_summary":   _build_summary(ml_result, lsb_analysis, extraction),
-    })
+    }
+    _save_integrated_result(response)
+
+    return JSONResponse(response)
+
+
+# ── GET /stego/report/{analysis_id} — PDF integrado ───────────────────────────
+
+@stego_router.get(
+    "/report/{analysis_id}",
+    summary="PDF integrado (decisión general + ML + LSB + extracción)",
+)
+async def integrated_report(analysis_id: str):
+    """
+    Genera un PDF basado en la decisión integrada de /stego/full-analysis,
+    no en el resultado ML-only de /analyze. Garantiza que el PDF refleje
+    la misma conclusión que muestra la pantalla.
+    """
+    record = _load_integrated_result(analysis_id)
+    if not record:
+        raise HTTPException(404, f"Análisis integrado no encontrado: {analysis_id}")
+
+    pdf_path = REPORTS_DIR / f"integrated_{analysis_id}.pdf"
+    if not pdf_path.exists():
+        try:
+            report_service.generate_integrated_pdf(record, pdf_path)
+        except Exception as exc:
+            raise HTTPException(500, f"Error generando PDF integrado: {exc}")
+
+    return FileResponse(
+        str(pdf_path),
+        media_type="application/pdf",
+        filename=f"reporte_integrado_{analysis_id[:8]}.pdf",
+    )
+
+
+# ── Persistencia de resultados integrados ──────────────────────────────────────
+
+def _save_integrated_result(record: dict) -> None:
+    """Guarda el resultado integrado en integrated_results.json (lista)."""
+    data: list = []
+    if INTEGRATED_RESULTS_FILE.exists():
+        try:
+            data = json.loads(INTEGRATED_RESULTS_FILE.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError):
+            data = []
+    data.append(record)
+    # Limitar a los últimos 200 para evitar crecimiento ilimitado en demo.
+    if len(data) > 200:
+        data = data[-200:]
+    INTEGRATED_RESULTS_FILE.write_text(
+        json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8"
+    )
+
+
+def _load_integrated_result(analysis_id: str) -> dict | None:
+    if not INTEGRATED_RESULTS_FILE.exists():
+        return None
+    try:
+        data = json.loads(INTEGRATED_RESULTS_FILE.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError):
+        return None
+    for entry in data:
+        if entry.get("id") == analysis_id:
+            return entry
+    return None
 
 
 # ── GET /stego/download/{artifact_id}/{artifact_type} ─────────────────────────

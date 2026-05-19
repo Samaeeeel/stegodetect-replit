@@ -1,0 +1,275 @@
+Necesito una corrección puntual y eficiente. No quiero que reconstruyas toda la app ni que gastes muchos recursos. Primero revisa el flujo actual y luego modifica solo lo necesario.
+
+Problema actual:
+La interfaz ya detecta correctamente una imagen generada por StegoDetect con PDF oculto. En pantalla aparece:
+
+- Mensaje oculto encontrado
+- Cabecera StegoDetect detectada
+- Payload encontrado
+- Tipo: pdf
+- SHA-256 válido
+
+Eso está bien.
+
+Pero al descargar el Reporte PDF, el reporte dice:
+
+- “Sin mensaje oculto”
+- “Predicción ML: Sin mensaje oculto”
+- “Puntaje ML de esteganografía: 0.0%”
+
+Eso está mal porque el reporte PDF está usando solo el resultado del endpoint viejo /analyze, no la decisión integrada de /stego/full-analysis.
+
+Objetivo:
+Corregir el sistema para que exista una sola “decisión general del sistema” y que esa decisión se use tanto en pantalla como en el PDF.
+
+IMPORTANTE:
+No reentrenes el modelo.
+No cambies el checkpoint.
+No cambies la arquitectura SRNet-lite.
+No cambies la lógica de inserción LSB.
+No cambies la lógica de extracción LSB.
+No reescribas todo el frontend.
+No hagas cambios grandes.
+No borres endpoints existentes.
+Haz un parche mínimo y bien razonado.
+
+Necesito que primero revises:
+1. Qué endpoint usa el botón “Reporte PDF”.
+2. Si está usando /report/{analysis_id} basado en /analyze.
+3. Si existe un reporte integrado para /stego/full-analysis.
+4. Qué datos tiene disponibles el frontend después del análisis completo.
+
+Corrección requerida:
+
+1. Cambiar el concepto visual y textual
+
+No quiero que el resultado principal se llame “Predicción ML”.
+
+Debe haber una separación clara:
+
+A. Decisión general del sistema
+B. Resultado del modelo ML
+C. Resultado de extracción LSB
+
+La decisión general debe priorizar así:
+
+Caso 1:
+Si payload_found=true y sha256_valid=true:
+- decision_general = “Mensaje oculto encontrado”
+- evidencia = “Extracción LSB StegoDetect”
+- confiabilidad = “Alta”
+- certeza_extraccion = “100%”
+- explicación:
+  “Se encontró y validó un payload oculto mediante cabecera STEGODETECTv1 y SHA-256. Esta evidencia directa no depende del puntaje ML.”
+
+Caso 2:
+Si no hay payload StegoDetect pero ML alto y dominio compatible:
+- decision_general = “Posibles patrones compatibles con esteganografía”
+- evidencia = “Modelo ML”
+- confiabilidad = “Media/Alta dentro del dominio”
+- explicación:
+  “El modelo detectó patrones estadísticos compatibles, pero no se recuperó payload StegoDetect.”
+
+Caso 3:
+Si no hay payload y ML alto pero imagen fuera de dominio:
+- decision_general = “Resultado ML no concluyente en imagen externa”
+- evidencia = “Modelo ML fuera de dominio”
+- confiabilidad = “Baja”
+- explicación:
+  “El puntaje ML es alto, pero la imagen no pertenece al dominio de entrenamiento; requiere validación externa.”
+
+Caso 4:
+Si no hay payload y ML bajo:
+- decision_general = “Sin evidencia detectable”
+- evidencia = “Sin cabecera StegoDetect y puntaje ML bajo”
+- explicación:
+  “No se encontró payload compatible y el modelo no detectó patrones significativos dentro del alcance evaluado.”
+
+2. Cambiar etiquetas en la pantalla
+
+Reemplazar cualquier título principal basado en:
+“Predicción ML”
+
+por:
+“Decisión general del sistema”
+
+El bloque ML debe quedar como secundario:
+
+- “Resultado del modelo ML”
+- “Puntaje ML de esteganografía”
+- “Dominio del modelo”
+- “Fiabilidad de interpretación”
+
+El bloque LSB debe quedar como evidencia directa:
+
+- “Extracción LSB”
+- “Cabecera StegoDetect”
+- “SHA-256”
+- “Tipo de payload”
+- “Archivo/mensaje extraído”
+
+3. Corregir el reporte PDF
+
+El botón “Reporte PDF” NO debe generar un reporte basado únicamente en /analyze cuando ya existe un resultado de /stego/full-analysis.
+
+Opciones aceptables:
+
+Opción A, preferida:
+Crear un nuevo endpoint:
+
+POST /stego/full-analysis/report
+
+o
+
+GET /stego/report/{analysis_id}
+
+que genere un PDF usando la decisión integrada.
+
+Opción B:
+Modificar el endpoint actual /report/{id} para que, si existe resultado integrado asociado al análisis, use:
+- final_decision
+- model_applicability
+- ml_detection
+- lsb_analysis
+- payload_extraction
+
+El PDF integrado debe mostrar:
+
+Título:
+Reporte Integrado de Esteganografía y Estegoanálisis
+
+Sección 1:
+Decisión general del sistema
+- Mensaje oculto encontrado / Sin evidencia detectable / Resultado ML no concluyente
+- Fuente principal de evidencia
+- Confiabilidad
+
+Sección 2:
+Resultado de extracción LSB
+- Cabecera StegoDetect detectada: Sí/No
+- Payload encontrado: Sí/No
+- SHA-256 válido: Sí/No
+- Tipo: text/pdf/image/binary
+- Nombre del archivo
+- Tamaño
+- MIME
+- Algoritmo LSB
+
+Sección 3:
+Resultado del modelo ML
+- Puntaje ML de esteganografía
+- Threshold
+- Predicción ML interna
+- Dominio del modelo
+- Fiabilidad de interpretación
+
+Sección 4:
+Aplicabilidad del modelo
+- Dentro del dominio / posiblemente fuera / fuera del dominio
+- Razones
+
+Sección 5:
+Conclusión técnica
+Debe priorizar la extracción LSB si existe payload válido.
+
+Ejemplo para imagen StegoDetect con PDF:
+La conclusión NO debe decir “Sin mensaje oculto”.
+Debe decir:
+“Mensaje oculto encontrado. El sistema recuperó y validó un payload PDF mediante extracción LSB con cabecera STEGODETECTv1 y SHA-256 válido. Aunque el modelo ML asignó un puntaje bajo, la evidencia directa de extracción confirma la presencia de información oculta compatible con el formato del sistema.”
+
+4. Corregir el caso de imagen generada por StegoDetect
+
+Cuando la imagen fue generada por el propio sistema y tiene payload válido:
+
+En pantalla debe aparecer:
+- Decisión general del sistema: Mensaje oculto encontrado
+- Evidencia principal: Extracción LSB StegoDetect
+- Confiabilidad: Alta
+- Certeza de extracción: 100%
+
+Pero el bloque ML puede decir:
+- Puntaje ML de esteganografía: 0%
+- Interpretación: “El modelo ML no detectó patrones estadísticos fuertes; esto puede ocurrir con payloads pequeños. La decisión final se basa en la extracción LSB validada.”
+
+No obligues al modelo ML a mostrar 100%.
+No falsifiques el score ML.
+El 100% debe aplicarse a la “validación de extracción”, no al ML.
+
+5. Corregir caso BossBase
+
+Cuando una imagen BOSSBase stego da ML 100% y no tiene cabecera StegoDetect:
+
+Debe decir:
+- Decisión general: Posibles patrones compatibles con esteganografía
+- Evidencia principal: Modelo ML
+- Payload StegoDetect: No encontrado
+- Explicación:
+  “La imagen presenta patrones compatibles con el dominio de entrenamiento del modelo, pero no contiene una cabecera StegoDetect recuperable.”
+
+Eso es diferente al caso StegoDetect:
+- BossBase stego: evidencia ML.
+- StegoDetect con payload: evidencia directa por extracción.
+
+6. Frontend: evitar confusión
+
+En la pestaña Analizar imagen:
+- Cambia el título visible “Resultado del análisis” para que muestre “Decisión general del sistema”.
+- Mantén debajo los detalles ML y LSB.
+- El botón PDF debe generar el reporte integrado, no el reporte ML-only.
+
+Si necesitas mantener el reporte viejo, renómbralo como:
+“Reporte ML”
+y crea otro botón:
+“Reporte integrado”
+
+Pero preferiblemente deja un solo botón:
+“Reporte integrado PDF”
+
+7. No gastar demasiados recursos
+
+Haz solo esto:
+- Revisar rutas/endpoints del botón PDF.
+- Crear o modificar un servicio de reporte integrado.
+- Ajustar el frontend para llamar a ese reporte.
+- Cambiar textos de “Predicción ML” a “Decisión general del sistema”.
+- Probar con 3 casos.
+
+No hagas:
+- rediseño completo
+- nueva arquitectura
+- nuevo entrenamiento
+- instalación pesada
+- cambios de modelo
+- refactor grande
+
+8. Pruebas mínimas obligatorias
+
+Prueba 1:
+Imagen StegoDetect con PDF:
+- Pantalla: “Mensaje oculto encontrado”
+- PDF: “Mensaje oculto encontrado”
+- PDF incluye tipo pdf y SHA-256 válido
+- PDF NO dice “Sin mensaje oculto” como resultado general
+
+Prueba 2:
+Imagen StegoDetect con texto:
+- Pantalla: “Mensaje oculto encontrado”
+- PDF: “Mensaje oculto encontrado”
+- PDF incluye mensaje extraído
+
+Prueba 3:
+Imagen BossBase stego detectada por ML:
+- Pantalla: “Posibles patrones compatibles con esteganografía”
+- PDF: “Posibles patrones compatibles con esteganografía”
+- PDF aclara que no hay payload StegoDetect recuperable
+
+9. Respuesta final requerida
+
+Al final dime:
+- Qué endpoint usaba antes el botón PDF.
+- Qué endpoint usa ahora.
+- Qué archivos modificaste.
+- Cómo se genera ahora la decisión general.
+- Cómo se diferencia “Puntaje ML” de “Evidencia LSB”.
+- Confirma que el PDF de una imagen StegoDetect con PDF oculto ya NO dice “Sin mensaje oculto”.
+- Confirma que no tocaste modelo, checkpoint ni entrenamiento.
