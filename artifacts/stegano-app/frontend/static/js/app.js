@@ -156,6 +156,12 @@ function initAnalyzeTab() {
    * El ML nunca sobreescribe la evidencia LSB directa.
    */
   function displayIntegratedResult(mlData, fullData) {
+    // ── Debug logs (thesis diagnostics) ───────────────────────────────────────
+    console.log('FULL_ANALYSIS_RESPONSE', fullData);
+    console.log('FINAL_DECISION', fullData.final_decision);
+    console.log('PAYLOAD_EXTRACTION', fullData.payload_extraction);
+    // ──────────────────────────────────────────────────────────────────────────
+
     const decision   = fullData.final_decision || {};
     const extraction = fullData.payload_extraction || {};
     const status     = decision.status || 'no_evidence';

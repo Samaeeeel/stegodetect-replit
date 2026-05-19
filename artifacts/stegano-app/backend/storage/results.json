@@ -110,5 +110,47 @@
     "label": "Sin mensaje oculto",
     "probability_percent": 0.0,
     "has_hidden_message": false
+  },
+  {
+    "id": "6a9feb8a-b889-4035-b3f8-a1d01a97d079",
+    "filename": "stego_3684527e.png",
+    "prediction": "cover",
+    "probability": 0.0,
+    "confidence": "Baja",
+    "explanation": "El análisis indica con un 0.0% de probabilidad que la imagen no contiene mensajes ocultos detectables. Los patrones de bits son consistentes con una imagen digital normal.",
+    "model_version": "srnet-lite-v1.0",
+    "created_at": "2026-05-19T12:46:07.936276",
+    "mock_mode": false,
+    "label": "Sin mensaje oculto",
+    "probability_percent": 0.0,
+    "has_hidden_message": false
+  },
+  {
+    "id": "601b4e09-55d4-4755-966a-3cbb1ccd29e5",
+    "filename": "stego_b1e703ed.png",
+    "prediction": "cover",
+    "probability": 0.0,
+    "confidence": "Baja",
+    "explanation": "El análisis indica con un 0.0% de probabilidad que la imagen no contiene mensajes ocultos detectables. Los patrones de bits son consistentes con una imagen digital normal.",
+    "model_version": "srnet-lite-v1.0",
+    "created_at": "2026-05-19T12:46:18.723483",
+    "mock_mode": false,
+    "label": "Sin mensaje oculto",
+    "probability_percent": 0.0,
+    "has_hidden_message": false
+  },
+  {
+    "id": "a74f5224-7e17-4bee-9837-aae00a591c40",
+    "filename": "stego_3684527e.png",
+    "prediction": "cover",
+    "probability": 0.0,
+    "confidence": "Baja",
+    "explanation": "El análisis indica con un 0.0% de probabilidad que la imagen no contiene mensajes ocultos detectables. Los patrones de bits son consistentes con una imagen digital normal.",
+    "model_version": "srnet-lite-v1.0",
+    "created_at": "2026-05-19T12:47:11.845344",
+    "mock_mode": false,
+    "label": "Sin mensaje oculto",
+    "probability_percent": 0.0,
+    "has_hidden_message": false
   }
 ]

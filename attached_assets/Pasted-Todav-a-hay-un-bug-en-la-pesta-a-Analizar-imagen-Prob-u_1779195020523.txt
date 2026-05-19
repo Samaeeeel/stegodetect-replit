@@ -1,0 +1,151 @@
+Todavía hay un bug en la pestaña “Analizar imagen”.
+
+Probé una imagen stego generada por el propio sistema con un PDF oculto. La sección técnica sí detecta correctamente:
+
+- Cabecera StegoDetect detectada
+- Payload StegoDetect encontrado
+- Tipo: pdf
+- Nombre: reporte_....pdf
+- Tamaño: 3.1 KB
+- MIME: application/pdf
+- SHA-256: válido
+- Botón “Descargar archivo oculto”
+
+Pero el resultado principal de arriba sigue diciendo:
+
+“Sin mensaje oculto”
+
+Eso es incorrecto. Si payload_found=true y sha256_valid=true, el título principal NUNCA debe decir “Sin mensaje oculto”, sin importar si el payload es texto, PDF, imagen o binario.
+
+Necesito que corrijas este bug de forma definitiva.
+
+IMPORTANTE:
+No cambies el modelo ML.
+No cambies el checkpoint.
+No cambies la arquitectura SRNet-lite.
+No cambies la lógica de inserción/extracción LSB.
+No borres endpoints.
+No vuelvas a entrenar.
+Solo corrige la lógica de decisión y renderizado del frontend/backend.
+
+Diagnóstico probable:
+El frontend todavía está usando el resultado de /analyze para pintar el título principal, o /analyze está sobrescribiendo visualmente el resultado de /stego/full-analysis. También puede ser que la corrección solo aplique cuando payload_type="text", pero no cuando payload_type="pdf", "image" o "binary".
+
+Corrección obligatoria:
+
+1. En la pestaña “Analizar imagen”, el veredicto principal debe salir SIEMPRE de:
+
+/stego/full-analysis → final_decision
+
+No debe salir directamente de /analyze.
+
+2. /analyze puede seguir ejecutándose solo para obtener analysis_id y permitir el PDF, pero NO debe pintar ni sobrescribir el título principal.
+
+3. En frontend/static/js/app.js, revisar si existe alguna función como:
+- renderAnalysisResult()
+- renderMLResult()
+- renderFullAnalysis()
+- renderIntegratedAnalysis()
+- updateResultHeader()
+- showAnalysisResult()
+
+y asegurar que el título principal use esta prioridad:
+
+if payload_extraction.payload_found === true && payload_extraction.sha256_valid === true:
+    title = "Mensaje oculto encontrado"
+    status = "payload_found"
+    evidence_source = "lsb_extraction"
+
+else if ml_detection.prediction === "stego" || ml_detection.probability >= threshold:
+    title = "Posible mensaje oculto detectado"
+    status = "ml_suspicious"
+    evidence_source = "ml_detection"
+
+else:
+    title = "Sin evidencia detectable"
+    status = "no_evidence"
+    evidence_source = "none"
+
+4. Esta lógica debe aplicar para TODOS los tipos de payload:
+- text
+- pdf
+- image
+- binary
+- application/pdf
+- text/plain
+- image/png
+- image/jpeg
+- cualquier MIME válido
+
+No limitar la condición a message_text. Un PDF oculto también debe activar “Mensaje oculto encontrado”.
+
+5. Si payload_found=true pero message_text no existe porque es PDF/binario:
+El resultado principal debe seguir diciendo:
+“Mensaje oculto encontrado”
+
+Y debajo debe decir:
+“Se encontró un archivo oculto recuperable mediante extracción LSB del sistema.”
+
+6. El bloque superior debe mostrar algo como:
+
+Título:
+Mensaje oculto encontrado
+
+Subtítulo:
+Payload recuperado mediante extracción LSB del sistema
+
+Explicación:
+Se encontró y validó un payload mediante cabecera STEGODETECTv1 y SHA-256. El modelo ML puede mostrar baja probabilidad si el payload es pequeño o no altera significativamente la estadística global de la imagen.
+
+7. Cambiar “Sin mensaje oculto” por “Sin evidencia detectable” solamente cuando:
+payload_found=false
+y ML bajo.
+
+8. Revisar posible condición de carrera:
+Si el frontend hace Promise.all([/analyze, /stego/full-analysis]), debe renderizar UNA sola vez al final usando final_decision de /stego/full-analysis.
+
+No hacer esto:
+- pintar primero /stego/full-analysis
+- luego pintar /analyze encima
+
+9. Agregar logs temporales en consola del navegador:
+
+console.log("FULL_ANALYSIS_RESPONSE", fullAnalysis)
+console.log("FINAL_DECISION", fullAnalysis.final_decision)
+console.log("PAYLOAD_EXTRACTION", fullAnalysis.payload_extraction)
+
+10. Agregar prueba obligatoria para PDF:
+
+Flujo:
+- Ocultar un PDF pequeño en una imagen.
+- Analizar la imagen stego generada desde la pestaña “Analizar imagen”.
+- Confirmar que la respuesta tiene:
+  payload_extraction.payload_found = true
+  payload_extraction.sha256_valid = true
+  payload_extraction.payload_type = "pdf" o MIME application/pdf
+- Confirmar que el título visible superior dice:
+  “Mensaje oculto encontrado”
+- Confirmar que NO dice:
+  “Sin mensaje oculto”
+
+11. Agregar prueba obligatoria para texto:
+- Ocultar “Papa”.
+- Analizar imagen.
+- Debe decir “Mensaje oculto encontrado”.
+
+12. Agregar prueba obligatoria para imagen limpia:
+- Analizar una imagen sin payload.
+- Si ML bajo y no hay payload:
+  debe decir “Sin evidencia detectable”.
+
+13. Después de modificar, reinicia el workflow y limpia caché del frontend si es necesario.
+Si Replit sirve JS cacheado, cambia la referencia en index.html a:
+static/js/app.js?v=2
+o incrementa la versión para forzar recarga.
+
+Al final dime:
+- Qué función estaba sobrescribiendo el título.
+- Si el error era por /analyze, por condición de carrera, por cache o por solo validar payload text.
+- Qué archivo modificaste.
+- Qué título aparece ahora con un PDF oculto.
+- Confirma que payload PDF con SHA-256 válido ya muestra “Mensaje oculto encontrado”.
