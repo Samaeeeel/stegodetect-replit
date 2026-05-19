@@ -89,9 +89,9 @@ def _build_pdf(result: AnalysisResult, output_path: Path) -> None:
     story.append(Spacer(1, 0.3 * cm))
 
     result_data = [
-        ["Predicción:", result.label],
-        ["Probabilidad:", f"{result.probability_percent}%"],
-        ["Nivel de confianza:", result.confidence],
+        ["Predicción ML:", result.label],
+        ["Puntaje ML de esteganografía:", f"{result.probability_percent}%"],
+        ["Fiabilidad ML (dentro del dominio):", result.confidence],
     ]
     story.append(_build_table(result_data, styles))
     story.append(Spacer(1, 0.5 * cm))
@@ -102,14 +102,31 @@ def _build_pdf(result: AnalysisResult, output_path: Path) -> None:
     story.append(Paragraph(result.explanation, styles["body_justified"]))
     story.append(Spacer(1, 0.5 * cm))
 
+    # ── Alcance del modelo ML (bloque obligatorio honesto) ────────────────────
+    story.append(Paragraph("Alcance del Modelo ML", styles["section_header"]))
+    story.append(Spacer(1, 0.2 * cm))
+    alcance = (
+        "El modelo SRNet-lite fue entrenado con imágenes <b>BOSSBase</b> en formato "
+        "PNG (~512×512) y payloads LSB controlados (p005, p010, p020). El puntaje "
+        "es más confiable en imágenes similares al dominio de entrenamiento. En "
+        "imágenes externas (JPG, wallpapers, alta resolución, alta saturación de "
+        "color) el puntaje debe considerarse <b>orientativo, no concluyente</b>. "
+        "La extracción de payload sólo es concluyente cuando existe una cabecera "
+        "<b>StegoDetect</b> y SHA-256 válido."
+    )
+    story.append(Paragraph(alcance, styles["body_justified"]))
+    story.append(Spacer(1, 0.5 * cm))
+
     # ── Nota académica ────────────────────────────────────────────────────────
     story.append(HRFlowable(width="100%", thickness=1, color=colors.HexColor("#9ca3af")))
     story.append(Spacer(1, 0.3 * cm))
     nota = (
-        "<b>Nota académica:</b> El resultado generado por este sistema es probabilístico "
-        "y debe interpretarse como apoyo técnico, no como prueba absoluta. "
-        "La precisión del análisis depende directamente del modelo entrenado y del "
-        "conjunto de datos utilizado para su entrenamiento."
+        "<b>Nota académica:</b> Este reporte refleja exclusivamente el puntaje "
+        "del modelo ML. Para una decisión integrada que combine evidencia ML, "
+        "análisis LSB y extracción de payload, use el endpoint <i>/stego/full-analysis</i> "
+        "desde la pestaña 'Analizar imagen'. El puntaje del modelo no debe "
+        "interpretarse como una probabilidad absoluta universal — su calibración "
+        "es válida sólo dentro del dominio de entrenamiento."
     )
     story.append(Paragraph(nota, styles["note"]))
 

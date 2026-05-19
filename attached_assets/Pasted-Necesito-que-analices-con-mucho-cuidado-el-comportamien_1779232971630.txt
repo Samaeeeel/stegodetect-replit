@@ -1,0 +1,259 @@
+Necesito que analices con mucho cuidado el comportamiento actual del sistema antes de modificar código. No quiero cambios rápidos sin razonamiento.
+
+Problema observado:
+El sistema ya funciona para:
+- ocultar información,
+- extraer payloads StegoDetect,
+- validar SHA-256,
+- analizar imágenes con ML + LSB.
+
+Pero ahora hay un problema serio de interpretación del modelo:
+
+1. Cuando subo imágenes externas que supuestamente no tienen información oculta, por ejemplo wallpapers JPG o imágenes descargadas de internet, el modelo a veces devuelve 100% y la app dice:
+   “Posible mensaje oculto detectado”.
+
+2. Cuando subo una imagen cover directamente de BOSSBase, el modelo devuelve 0%, pero el texto dice:
+   “El análisis indica con un 0.0% de probabilidad que la imagen no contiene mensajes ocultos detectables”.
+
+Ese texto está mal redactado y genera desconfianza. Si dice 0%, parece que hay 0% de confianza en que sea limpia, cuando en realidad debería significar:
+“Puntaje ML de esteganografía: 0%”.
+
+Contexto técnico:
+El modelo SRNet-lite fue entrenado principalmente con imágenes BOSSBase convertidas a PNG, con payloads LSB controlados p005, p010 y p020. El threshold guardado en model_metadata.json es aproximadamente 0.0404. Ese threshold fue validado dentro del mismo dominio experimental, pero no necesariamente en imágenes externas como JPG, wallpapers, imágenes a color muy comprimidas o resoluciones 3840x2400.
+
+Por eso necesito que NO trates el score del modelo como una probabilidad absoluta universal. Debe tratarse como un “puntaje ML dentro del dominio de entrenamiento”.
+
+Antes de modificar, haz un plan técnico y explícame en tu respuesta qué vas a cambiar y por qué.
+
+OBJETIVO:
+Corregir la lógica del backend/frontend para que el sistema sea académicamente honesto y técnicamente más confiable con imágenes externas no entrenadas.
+
+REGLAS IMPORTANTES:
+- No reentrenes el modelo.
+- No cambies el checkpoint.
+- No cambies la arquitectura SRNet-lite.
+- No dañes la inserción/extracción LSB.
+- No elimines los endpoints actuales.
+- No afirmes que una imagen externa tiene mensaje oculto con certeza solo porque el modelo dio 100%.
+- No afirmes que una imagen está limpia con certeza solo porque el modelo dio 0%.
+- Cambia el lenguaje para hablar de “evidencia”, “puntaje ML” y “compatibilidad con el dominio del modelo”.
+
+CAMBIOS NECESARIOS:
+
+1. Cambiar etiquetas del frontend
+
+Reemplazar:
+“Probabilidad ML (modelo)”
+
+por:
+“Puntaje ML de esteganografía”
+
+Reemplazar:
+“Nivel de confianza”
+
+por algo más claro, por ejemplo:
+“Fiabilidad de interpretación”
+
+O separar en dos campos:
+- Puntaje ML de esteganografía
+- Fiabilidad del análisis
+
+2. Corregir textos cuando el score sea bajo
+
+Si payload_found=false y ML bajo, no decir:
+“El análisis indica con un 0.0% de probabilidad que la imagen no contiene mensajes ocultos”.
+
+Debe decir:
+“No se encontró payload compatible con el formato StegoDetect y el puntaje ML de esteganografía fue bajo. Esto indica baja evidencia detectable dentro del alcance del modelo, pero no descarta técnicas externas, cifradas o no compatibles.”
+
+El título debe ser:
+“Sin evidencia detectable”
+
+No:
+“Sin mensaje oculto”
+
+3. Corregir textos cuando el score sea alto en imagen externa
+
+Si payload_found=false y ML alto, no decir de forma absoluta:
+“La imagen contiene información oculta”.
+
+Debe decir:
+“Posibles patrones compatibles con esteganografía”
+
+Y el resumen:
+“El modelo ML asignó un puntaje alto de esteganografía, pero no se encontró una cabecera StegoDetect compatible. El contenido podría corresponder a otro algoritmo, ruido/compresión, características fuera del dominio de entrenamiento o una imagen realmente esteganografiada. Se recomienda validación adicional.”
+
+4. Agregar detector de dominio / compatibilidad de entrada
+
+Crear una función en backend, por ejemplo:
+
+assess_model_applicability(image)
+
+Debe revisar:
+- formato original: PNG/JPG/JPEG
+- modo de color: grayscale/RGB/RGBA
+- dimensiones
+- si es imagen muy grande o muy pequeña
+- si viene de JPG/comprimida
+- si tiene EXIF o compresión fuerte
+- distribución LSB por canal
+- entropía aproximada
+- si la imagen se parece al dominio BOSSBase: grayscale o RGB con canales casi iguales, tamaño cercano a 512x512, PNG sin compresión destructiva
+
+Debe devolver:
+{
+  "domain_status": "in_domain" | "possibly_out_of_domain" | "out_of_domain",
+  "reasons": [...],
+  "ml_score_reliability": "high" | "medium" | "low"
+}
+
+Ejemplos:
+
+- BOSSBase cover PNG 512x512 grayscale/RGB equivalente:
+  domain_status = "in_domain"
+  reliability = "high"
+
+- Wallpaper JPG 3840x2400 color:
+  domain_status = "out_of_domain"
+  reliability = "low"
+  reason = "Imagen JPG/color/resolución externa no representada en entrenamiento"
+
+- Imagen PNG generada por StegoDetect:
+  si hay cabecera válida, la extracción LSB manda sobre el ML.
+
+5. Cambiar la decisión integrada
+
+La decisión final debe seguir esta prioridad:
+
+A. Si payload_found=true y sha256_valid=true:
+   status = "payload_found"
+   title = "Mensaje oculto encontrado"
+   evidence_source = "lsb_extraction"
+   reliability = "high"
+
+B. Si payload_found=false y ML alto, pero domain_status es in_domain:
+   status = "ml_suspicious"
+   title = "Posibles patrones compatibles con esteganografía"
+   evidence_source = "ml_detection"
+   reliability = "medium/high"
+
+C. Si payload_found=false y ML alto, pero domain_status es out_of_domain o possibly_out_of_domain:
+   status = "ml_suspicious_unverified"
+   title = "Resultado ML no concluyente en imagen externa"
+   evidence_source = "ml_detection_out_of_domain"
+   reliability = "low"
+   summary:
+   “El modelo asignó puntaje alto, pero la imagen está fuera del dominio de entrenamiento. No se debe interpretar como detección concluyente.”
+
+D. Si payload_found=false y ML bajo:
+   status = "no_evidence"
+   title = "Sin evidencia detectable"
+   summary:
+   “No se encontró payload StegoDetect y el puntaje ML fue bajo dentro del alcance evaluado.”
+
+6. No usar “confianza baja” cuando el modelo da 0%
+
+Actualmente si el ML da 0%, la interfaz muestra “Nivel de confianza: Baja”. Eso está mal, porque 0% puede significar baja evidencia de estego, no baja confianza.
+
+Corregir así:
+- Si score está cerca de 0 y la imagen es in_domain: “Fiabilidad: Alta para baja evidencia de estego”.
+- Si score está cerca de 50%: “Fiabilidad: Baja / resultado ambiguo”.
+- Si score está cerca de 100% y la imagen es in_domain: “Fiabilidad: Alta para posible estego”.
+- Si imagen es out_of_domain: “Fiabilidad: Baja por imagen fuera del dominio del modelo”, aunque el score sea 0% o 100%.
+
+7. Mostrar claramente el alcance del modelo
+
+En la sección técnica, agregar un bloque:
+
+“Alcance del modelo ML”
+- Modelo entrenado con imágenes BOSSBase y payloads LSB controlados.
+- El puntaje ML es más confiable en imágenes similares al conjunto de entrenamiento.
+- En imágenes externas, JPG, wallpapers o imágenes con fuerte compresión, el resultado debe considerarse orientativo y no concluyente.
+- La extracción de payload solo es concluyente cuando existe cabecera StegoDetect y SHA-256 válido.
+
+8. Backend
+
+Modificar /stego/full-analysis para devolver:
+
+{
+  "final_decision": {...},
+  "ml_detection": {
+    "score": ...,
+    "threshold": ...,
+    "raw_prediction": ...,
+    "interpretation": ...
+  },
+  "model_applicability": {
+    "domain_status": ...,
+    "ml_score_reliability": ...,
+    "reasons": [...]
+  },
+  "lsb_analysis": {...},
+  "payload_extraction": {...}
+}
+
+9. Frontend
+
+La pestaña “Analizar imagen” debe mostrar:
+
+- Decisión integrada
+- Puntaje ML de esteganografía
+- Fiabilidad de interpretación
+- Alcance del modelo
+- Razones si la imagen está fuera del dominio
+- Resultado LSB
+- Resultado de extracción
+
+10. Reporte PDF
+
+Actualizar el reporte para que no diga “la imagen contiene mensaje oculto” solo por ML alto en imagen externa.
+
+Debe separar:
+- Resultado ML
+- Aplicabilidad del modelo
+- Extracción LSB
+- Decisión integrada
+
+11. Pruebas obligatorias
+
+Haz pruebas con:
+
+A. Imagen StegoDetect con texto:
+- Debe decir “Mensaje oculto encontrado”
+- Fiabilidad alta por extracción LSB
+
+B. Imagen StegoDetect con PDF:
+- Debe decir “Mensaje oculto encontrado”
+- Fiabilidad alta por extracción LSB
+
+C. Imagen BOSSBase cover limpia:
+- Debe decir “Sin evidencia detectable”
+- Puntaje ML bajo
+- Dominio: in_domain o compatible
+- No debe decir “0% de probabilidad que la imagen no contiene...”
+
+D. Imagen externa JPG/wallpaper:
+- Si ML da 100%, NO debe decir detección concluyente.
+- Debe decir:
+  “Resultado ML no concluyente en imagen externa”
+  o
+  “Posibles patrones compatibles, requiere validación”
+- Debe mostrar que está fuera del dominio del modelo.
+
+E. Imagen limpia externa PNG/JPG:
+- Si no hay cabecera StegoDetect y ML bajo:
+  “Sin evidencia detectable dentro del alcance del modelo”
+- Si ML alto:
+  “ML alto, pero baja fiabilidad por fuera de dominio”
+
+12. Respuesta final requerida
+
+Al final dime:
+- Qué archivos modificaste.
+- Qué cambió en la lógica de decisión.
+- Cómo se calcula model_applicability.
+- Cómo se interpreta ahora un ML score de 0%.
+- Cómo se interpreta ahora un ML score de 100% en una imagen externa.
+- Cómo se ve el caso BOSSBase cover.
+- Cómo se ve el caso wallpaper/JPG externo.
+- Confirma que ya no se usa “0% de probabilidad que la imagen no contiene...”.

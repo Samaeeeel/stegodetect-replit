@@ -22,6 +22,10 @@ from backend.services.steganography_service import (
     StegoCapacityError,
 )
 from backend.services import model_service
+from backend.services.domain_assessor import (
+    assess_model_applicability,
+    interpret_reliability,
+)
 
 stego_router = APIRouter(prefix="/stego", tags=["steganography"])
 
@@ -222,15 +226,34 @@ async def full_analysis(
     except Exception as exc:
         capacity = {"error": str(exc)}
 
-    final_decision = _build_final_decision(ml_result, lsb_analysis, extraction)
+    # 5. Aplicabilidad del modelo (¿la imagen está dentro del dominio?)
+    try:
+        applicability = assess_model_applicability(image_path)
+    except Exception as exc:
+        applicability = {
+            "domain_status":        "out_of_domain",
+            "ml_score_reliability": "low",
+            "reasons":              [f"Error evaluando dominio: {exc}"],
+        }
+
+    # 6. Fiabilidad combinada (puntaje ML + dominio)
+    reliability = interpret_reliability(
+        ml_probability = ml_result.get("probability", 0.0),
+        threshold      = ml_result.get("threshold") or 0.0404,
+        domain_status  = applicability.get("domain_status", "out_of_domain"),
+    )
+
+    final_decision = _build_final_decision(ml_result, lsb_analysis, extraction, applicability)
 
     return JSONResponse({
-        "final_decision":     final_decision,
-        "ml_detection":       ml_result,
-        "lsb_analysis":       lsb_analysis,
-        "payload_extraction": extraction,
-        "capacity":           capacity,
-        "technical_summary":  _build_summary(ml_result, lsb_analysis, extraction),
+        "final_decision":      final_decision,
+        "ml_detection":        ml_result,
+        "model_applicability": applicability,
+        "reliability":         reliability,
+        "lsb_analysis":        lsb_analysis,
+        "payload_extraction":  extraction,
+        "capacity":            capacity,
+        "technical_summary":   _build_summary(ml_result, lsb_analysis, extraction),
     })
 
 
@@ -310,55 +333,99 @@ def _parse_channels(channels_str: str) -> tuple:
     return tuple(result) if result else ("R", "G", "B")
 
 
-def _build_final_decision(ml: dict, lsb: dict, extraction: dict) -> dict:
+def _build_final_decision(
+    ml: dict,
+    lsb: dict,
+    extraction: dict,
+    applicability: dict,
+) -> dict:
     """
-    Determina la decisión final integrando las dos fuentes de evidencia:
-    1. Extracción LSB con cabecera STEGODETECTv1 (evidencia directa — prioridad alta)
-    2. Detector ML SRNet-lite (evidencia probabilística — secundaria)
+    Decisión integrada con conciencia de dominio.
 
-    Casos:
-      A. payload_found + sha256_valid → "Mensaje oculto encontrado" (LSB gana)
-      B. ML stego/sospechoso, sin cabecera → "Posible mensaje oculto detectado"
-      C. Sin evidencia en ninguno → "Sin evidencia detectable"
+    Prioridad (de mayor a menor evidencia):
+
+      A. payload_found + sha256_valid
+         → "Mensaje oculto encontrado"  (LSB con integridad — evidencia directa, fiabilidad alta)
+
+      B. ML alto + imagen DENTRO del dominio (in_domain)
+         → "Posibles patrones compatibles con esteganografía"  (ML calibrado, fiabilidad media/alta)
+
+      C. ML alto + imagen FUERA del dominio (out_of_domain o possibly_out_of_domain)
+         → "Resultado ML no concluyente en imagen externa"  (ML sobre OOD, fiabilidad baja)
+            Nunca afirmamos detección cuando la imagen no se parece al dominio de entrenamiento.
+
+      D. ML bajo (cualquier dominio)
+         → "Sin evidencia detectable"  (sin payload + sin señal ML)
     """
-    # Caso A: extracción LSB exitosa con integridad verificada — máxima prioridad
+    # ── Caso A: extracción LSB con integridad — máxima prioridad ────────────
+    # La extracción LSB con SHA-256 válido es evidencia directa: no depende
+    # del dominio del modelo, es matemáticamente verificable.
     if extraction.get("payload_found") and extraction.get("sha256_valid"):
         return {
             "status":          "payload_found",
             "title":           "Mensaje oculto encontrado",
             "summary":         (
                 "Se encontró y validó un payload mediante extracción LSB del sistema "
-                "(cabecera STEGODETECTv1 detectada, SHA-256 verificado)."
+                "(cabecera STEGODETECTv1 detectada, SHA-256 verificado). "
+                "Evidencia directa — no depende del modelo ML."
             ),
             "evidence_source": "lsb_extraction",
+            "reliability":     "high",
         }
 
-    # Caso B: ML detecta algo pero sin cabecera del sistema
-    pred = ml.get("prediction", "cover")
-    prob = ml.get("probability", 0.0)
-    thr  = ml.get("threshold") or 0.0404
+    pred          = ml.get("prediction", "cover")
+    prob          = ml.get("probability", 0.0)
+    thr           = ml.get("threshold") or 0.0404
+    domain_status = applicability.get("domain_status", "out_of_domain")
+    ml_high       = (pred == "stego" or prob >= thr)
 
-    if pred == "stego" or prob >= thr:
+    # ── Caso C: ML alto pero imagen fuera de dominio ────────────────────────
+    # IMPORTANTE: este caso se evalúa ANTES que el caso B para que un puntaje
+    # alto en una imagen JPG/wallpaper nunca se reporte como detección concluyente.
+    if ml_high and domain_status in ("out_of_domain", "possibly_out_of_domain"):
+        return {
+            "status":          "ml_suspicious_unverified",
+            "title":           "Resultado ML no concluyente en imagen externa",
+            "summary":         (
+                "El modelo asignó un puntaje alto, pero la imagen está fuera del "
+                "dominio de entrenamiento (BOSSBase PNG, ~512×512, baja saturación). "
+                "El puntaje sobre imágenes externas, JPG o de alta resolución no es "
+                "una probabilidad calibrada y NO debe interpretarse como detección "
+                "concluyente. Se recomienda validación adicional o análisis sobre "
+                "una versión PNG sin compresión destructiva."
+            ),
+            "evidence_source": "ml_detection_out_of_domain",
+            "reliability":     "low",
+        }
+
+    # ── Caso B: ML alto e imagen dentro del dominio ─────────────────────────
+    if ml_high and domain_status == "in_domain":
         return {
             "status":          "ml_suspicious",
-            "title":           "Posible mensaje oculto detectado",
+            "title":           "Posibles patrones compatibles con esteganografía",
             "summary":         (
-                "El modelo ML detectó patrones estadísticos compatibles con esteganografía, "
-                "pero no se encontró una cabecera StegoDetect compatible. "
-                "El contenido puede usar otro algoritmo, formato o clave."
+                "El modelo ML asignó un puntaje alto de esteganografía sobre una "
+                "imagen compatible con su dominio de entrenamiento, pero no se "
+                "encontró una cabecera StegoDetect. El contenido podría corresponder "
+                "a otro algoritmo de esteganografía, una técnica con cifrado, o "
+                "una imagen realmente esteganografiada. Se recomienda validación adicional."
             ),
             "evidence_source": "ml_detection",
+            "reliability":     "medium",
         }
 
-    # Caso C: sin evidencia en ninguna fuente
+    # ── Caso D: ML bajo — sin evidencia detectable ──────────────────────────
     return {
         "status":          "no_evidence",
         "title":           "Sin evidencia detectable",
         "summary":         (
-            "No se encontró payload compatible con el formato del sistema "
-            "y el modelo ML no detectó patrones estadísticos significativos."
+            "No se encontró payload compatible con el formato StegoDetect y el "
+            "puntaje ML de esteganografía fue bajo. Esto indica baja evidencia "
+            "detectable dentro del alcance del modelo, pero no descarta técnicas "
+            "externas, cifradas o no compatibles con el sistema."
         ),
         "evidence_source": "none",
+        "reliability":     "high" if domain_status == "in_domain" else "medium",
     }
 
 

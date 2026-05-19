@@ -219,3 +219,19 @@ details summary:hover { color: var(--primary); }
   .display-6    { font-size: 1.35rem; }
   .main-tabs .nav-link { padding: 0.5rem 0.75rem; font-size: 0.875rem; }
 }
+
+/* ── Badge para resultado ML no concluyente (out-of-domain) ────────────────── */
+.result-badge.unverified {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border: 2px solid #d97706;
+  color: #92400e;
+}
+.result-badge.unverified i { color: #d97706; }
+
+/* ── Badge para evidencia LSB directa (payload_found) ──────────────────────── */
+.result-badge.stego-lsb {
+  background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%);
+  border: 2px solid #7c3aed;
+  color: #5b21b6;
+}
+.result-badge.stego-lsb i { color: #7c3aed; }

@@ -160,13 +160,17 @@ function initAnalyzeTab() {
     console.log('FULL_ANALYSIS_RESPONSE', fullData);
     console.log('FINAL_DECISION', fullData.final_decision);
     console.log('PAYLOAD_EXTRACTION', fullData.payload_extraction);
+    console.log('MODEL_APPLICABILITY', fullData.model_applicability);
+    console.log('RELIABILITY', fullData.reliability);
     // ──────────────────────────────────────────────────────────────────────────
 
-    const decision   = fullData.final_decision || {};
-    const extraction = fullData.payload_extraction || {};
-    const status     = decision.status || 'no_evidence';
+    const decision      = fullData.final_decision      || {};
+    const extraction    = fullData.payload_extraction  || {};
+    const applicability = fullData.model_applicability || {};
+    const reliability   = fullData.reliability         || {};
+    const status        = decision.status || 'no_evidence';
 
-    // ── Configuración visual por status ──────────────────────────────────────
+    // ── Configuración visual por status (4 estados) ──────────────────────────
     const statusCfg = {
       payload_found: {
         badgeCls: 'stego-lsb',
@@ -176,7 +180,12 @@ function initAnalyzeTab() {
       ml_suspicious: {
         badgeCls: 'stego',
         icon:     'bi-exclamation-triangle-fill',
-        color:    'var(--danger)',              // rojo — sospecha ML
+        color:    'var(--danger)',              // rojo — sospecha ML en dominio
+      },
+      ml_suspicious_unverified: {
+        badgeCls: 'unverified',
+        icon:     'bi-question-circle-fill',
+        color:    '#d97706',                    // ámbar — no concluyente OOD
       },
       no_evidence: {
         badgeCls: 'cover',
@@ -197,38 +206,42 @@ function initAnalyzeTab() {
 
     document.getElementById('result-filename').textContent = mlData.filename;
 
-    // ── Probabilidad ML (barra secundaria) ────────────────────────────────────
+    // ── Puntaje ML de esteganografía (antes "Probabilidad") ──────────────────
     const prob    = mlData.probability_percent;
     const probBar = document.getElementById('prob-bar');
     probBar.style.width = `${prob}%`;
     probBar.className   = `progress-bar ${mlData.prediction}`;
     document.getElementById('prob-text').textContent = `${prob}%`;
 
-    // ── Nivel de confianza ML ─────────────────────────────────────────────────
-    const confMap = {
-      'Alta':  ['bg-success', 'Alta'],
-      'Media': ['bg-warning text-dark', 'Media'],
-      'Baja':  ['bg-danger', 'Baja'],
+    // ── Fiabilidad de interpretación (combina puntaje + dominio) ─────────────
+    // Reemplaza la antigua "Nivel de confianza" — la fiabilidad ahora depende
+    // de si la imagen es compatible con el dominio de entrenamiento.
+    const relMap = {
+      high:   'bg-success',
+      medium: 'bg-warning text-dark',
+      low:    'bg-danger',
     };
-    const [cls, lbl] = confMap[mlData.confidence] || ['bg-secondary', mlData.confidence];
     const cb = document.getElementById('confidence-badge');
-    cb.className   = `badge ${cls}`;
-    cb.textContent = lbl;
+    cb.className   = `badge ${relMap[reliability.level] || 'bg-secondary'}`;
+    cb.textContent = reliability.label || 'No determinada';
+    if (reliability.tooltip) cb.title = reliability.tooltip;
 
-    // ── Explicación integrada ─────────────────────────────────────────────────
-    // Para "payload_found": mostrar el resumen LSB + nota sobre ML bajo
-    // Para otros casos: usar la explicación del ML como referencia
-    let explanation = decision.summary || '';
-    if (status === 'payload_found') {
-      const probPct = (mlData.probability * 100).toFixed(1);
-      explanation +=
-        ` El modelo ML registró ${probPct}% de probabilidad — esto puede ser bajo` +
-        ` cuando el mensaje es pequeño y no altera significativamente la` +
-        ` distribución estadística de los píxeles de la imagen.`;
-    } else if (mlData.explanation) {
-      explanation += (explanation ? ' ' : '') + mlData.explanation;
-    }
-    document.getElementById('explanation-text').textContent = explanation;
+    // ── Compatibilidad con dominio del modelo ────────────────────────────────
+    const domainMap = {
+      in_domain:               ['bg-success', 'Dentro del dominio'],
+      possibly_out_of_domain:  ['bg-warning text-dark', 'Parcialmente compatible'],
+      out_of_domain:           ['bg-danger', 'Fuera del dominio'],
+    };
+    const [domCls, domLbl] = domainMap[applicability.domain_status] || ['bg-secondary', '—'];
+    const db = document.getElementById('domain-badge');
+    db.className   = `badge ${domCls}`;
+    db.textContent = domLbl;
+
+    // ── Explicación integrada (honesta — sin "0% probabilidad que no…") ─────
+    // El summary del backend ya está calibrado para cada uno de los 4 casos.
+    // No concatenamos la explicación cruda del ML aquí — eso confundiría al
+    // usuario en casos out_of_domain donde el puntaje no es interpretable.
+    document.getElementById('explanation-text').textContent = decision.summary || '';
 
     document.getElementById('mock-result-warning').style.display =
       mlData.mock_mode ? 'block' : 'none';
@@ -237,6 +250,20 @@ function initAnalyzeTab() {
 
     // Mostrar detalles técnicos LSB automáticamente (ya tenemos los datos)
     displayFullAnalysis(fullData);
+
+    // ── Razones del juicio de dominio (sección técnica) ──────────────────────
+    const reasonsBlock = document.getElementById('domain-reasons-block');
+    const reasonsList  = document.getElementById('domain-reasons-list');
+    if (reasonsBlock && reasonsList) {
+      const reasons = applicability.reasons || [];
+      reasonsList.innerHTML = '';
+      reasons.forEach(r => {
+        const li = document.createElement('li');
+        li.textContent = r;
+        reasonsList.appendChild(li);
+      });
+      reasonsBlock.style.display = reasons.length ? 'block' : 'none';
+    }
   }
 
   // ── PDF ───────────────────────────────────────────────────────────────────

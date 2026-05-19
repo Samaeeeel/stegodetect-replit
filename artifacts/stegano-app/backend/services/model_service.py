@@ -414,19 +414,28 @@ def _get_confidence(probability: float) -> str:
 
 
 def _get_explanation(prediction: str, probability: float, mock: bool) -> str:
-    """Genera una explicación textual del resultado para el usuario."""
+    """
+    Genera una explicación textual del resultado ML para el usuario.
+
+    Nota: este texto se refiere SOLO al puntaje del modelo SRNet-lite,
+    sin considerar la aplicabilidad de dominio. La interpretación
+    integrada (que sí considera el dominio) se construye en
+    `stego_routes._build_final_decision`.
+    """
     prefix = "[MODO DEMOSTRACIÓN] " if mock else ""
     pct    = round(probability * 100, 1)
 
     if prediction == "stego":
         return (
-            f"{prefix}El análisis sugiere con un {pct}% de probabilidad que la imagen "
-            "contiene información oculta mediante técnicas de esteganografía LSB. "
-            "Se detectaron patrones estadísticos inusuales en los bits menos significativos."
+            f"{prefix}Puntaje ML de esteganografía: {pct}%. El modelo detectó "
+            "patrones estadísticos en los bits menos significativos compatibles "
+            "con esteganografía LSB dentro de su dominio de entrenamiento. "
+            "Validar con el análisis técnico LSB antes de concluir."
         )
     else:
         return (
-            f"{prefix}El análisis indica con un {pct}% de probabilidad que la imagen "
-            "no contiene mensajes ocultos detectables. Los patrones de bits son "
-            "consistentes con una imagen digital normal."
+            f"{prefix}Puntaje ML de esteganografía: {pct}%. El modelo no detectó "
+            "patrones estadísticos compatibles con esteganografía LSB dentro de su "
+            "dominio de entrenamiento. Esto representa baja evidencia ML, pero no "
+            "descarta técnicas externas, cifradas o fuera del alcance del modelo."
         )
