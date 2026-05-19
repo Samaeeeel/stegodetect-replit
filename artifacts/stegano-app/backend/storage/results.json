@@ -54,5 +54,61 @@
     "label": "Con mensaje oculto",
     "probability_percent": 100.0,
     "has_hidden_message": true
+  },
+  {
+    "id": "fc2d7ad0-7f0f-4e1e-9579-1bf86abadada",
+    "filename": "stego_b1e703ed.png",
+    "prediction": "cover",
+    "probability": 0.0,
+    "confidence": "Baja",
+    "explanation": "El análisis indica con un 0.0% de probabilidad que la imagen no contiene mensajes ocultos detectables. Los patrones de bits son consistentes con una imagen digital normal.",
+    "model_version": "srnet-lite-v1.0",
+    "created_at": "2026-05-19T12:22:04.889278",
+    "mock_mode": false,
+    "label": "Sin mensaje oculto",
+    "probability_percent": 0.0,
+    "has_hidden_message": false
+  },
+  {
+    "id": "27d98b1c-e1be-4477-b350-bba3df98d593",
+    "filename": "stego_b1e703ed.png",
+    "prediction": "cover",
+    "probability": 0.0,
+    "confidence": "Baja",
+    "explanation": "El análisis indica con un 0.0% de probabilidad que la imagen no contiene mensajes ocultos detectables. Los patrones de bits son consistentes con una imagen digital normal.",
+    "model_version": "srnet-lite-v1.0",
+    "created_at": "2026-05-19T12:23:27.014328",
+    "mock_mode": false,
+    "label": "Sin mensaje oculto",
+    "probability_percent": 0.0,
+    "has_hidden_message": false
+  },
+  {
+    "id": "f8273578-79ea-4ac7-83e6-3c4932e4f237",
+    "filename": "stego_3684527e.png",
+    "prediction": "cover",
+    "probability": 0.0,
+    "confidence": "Baja",
+    "explanation": "El análisis indica con un 0.0% de probabilidad que la imagen no contiene mensajes ocultos detectables. Los patrones de bits son consistentes con una imagen digital normal.",
+    "model_version": "srnet-lite-v1.0",
+    "created_at": "2026-05-19T12:31:37.626612",
+    "mock_mode": false,
+    "label": "Sin mensaje oculto",
+    "probability_percent": 0.0,
+    "has_hidden_message": false
+  },
+  {
+    "id": "ff0a2ee0-d977-4f61-bb76-8f69f9550962",
+    "filename": "stego_3684527e.png",
+    "prediction": "cover",
+    "probability": 0.0,
+    "confidence": "Baja",
+    "explanation": "El análisis indica con un 0.0% de probabilidad que la imagen no contiene mensajes ocultos detectables. Los patrones de bits son consistentes con una imagen digital normal.",
+    "model_version": "srnet-lite-v1.0",
+    "created_at": "2026-05-19T12:42:57.392246",
+    "mock_mode": false,
+    "label": "Sin mensaje oculto",
+    "probability_percent": 0.0,
+    "has_hidden_message": false
   }
 ]

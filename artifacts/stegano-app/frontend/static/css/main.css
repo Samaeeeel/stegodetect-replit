@@ -127,8 +127,12 @@ body {
   display: flex; align-items: center; justify-content: center;
   font-size: 1.6rem;
 }
+/* stego = ML detectó esteganografía */
 .result-badge.stego { background:#fef2f2; color:var(--danger); border:3px solid #fecaca; }
+/* cover / no_evidence = sin evidencia */
 .result-badge.cover { background:#f0fdf4; color:var(--success); border:3px solid #bbf7d0; }
+/* stego-lsb = payload encontrado vía extracción LSB del sistema */
+.result-badge.stego-lsb { background:#f5f3ff; color:#7c3aed; border:3px solid #ddd6fe; }
 
 /* ── Progress bar ─────────────────────────────────────────────────────────── */
 .progress-bar.stego { background-color: var(--danger); }

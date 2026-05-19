@@ -107,7 +107,19 @@ function initAnalyzeTab() {
     document.getElementById('full-analysis-result').style.display = 'none';
   }
 
-  // ── Análisis ML ───────────────────────────────────────────────────────────
+  // ── Analizar: ML + LSB integrado en un solo clic ────────────────────────────
+  //
+  // Flujo:
+  //   1. POST /analyze          → guarda resultado y genera ID para PDF
+  //   2. POST /stego/full-analysis → análisis integrado ML + LSB + extracción
+  //   Ambas llamadas se hacen en paralelo para reducir latencia.
+  //
+  // Lógica de decisión (prioridad):
+  //   Caso A payload_found + sha256_valid  → "Mensaje oculto encontrado"    (LSB gana)
+  //   Caso B ML stego, sin cabecera        → "Posible mensaje oculto"       (ML avisa)
+  //   Caso C sin evidencia                 → "Sin evidencia detectable"     (ninguno)
+  // ─────────────────────────────────────────────────────────────────────────────
+
   analyzeBtn.addEventListener('click', async () => {
     if (!selectedFile) return;
     showAnalyzeState('loading');
@@ -115,11 +127,17 @@ function initAnalyzeTab() {
     document.getElementById('full-analysis-result').style.display = 'none';
 
     try {
-      const fd = new FormData();
-      fd.append('file', selectedFile);
-      const data = await fetchJSON('/analyze', { method: 'POST', body: fd });
-      lastAnalysisId = data.id;
-      displayAnalyzeResult(data);
+      const fd1 = new FormData(); fd1.append('file',  selectedFile);
+      const fd2 = new FormData(); fd2.append('image', selectedFile);
+
+      const [mlData, fullData] = await Promise.all([
+        fetchJSON('/analyze',               { method: 'POST', body: fd1 }),
+        fetchJSON('/stego/full-analysis',   { method: 'POST', body: fd2 }),
+      ]);
+
+      lastAnalysisId = mlData.id;
+      lastFullData   = fullData;
+      displayIntegratedResult(mlData, fullData);
     } catch (err) {
       showAnalyzeError(err.message || 'Error desconocido.');
     } finally {
@@ -127,38 +145,92 @@ function initAnalyzeTab() {
     }
   });
 
-  function displayAnalyzeResult(data) {
-    const isStego = data.prediction === 'stego';
-    const prob    = data.probability_percent;
+  /**
+   * displayIntegratedResult — Resultado combinado ML + extracción LSB.
+   *
+   * El veredicto visible depende de final_decision.status (calculado en el backend):
+   *   "payload_found"  → badge lila, "Mensaje oculto encontrado"
+   *   "ml_suspicious"  → badge rojo, "Posible mensaje oculto detectado"
+   *   "no_evidence"    → badge verde, "Sin evidencia detectable"
+   *
+   * El ML nunca sobreescribe la evidencia LSB directa.
+   */
+  function displayIntegratedResult(mlData, fullData) {
+    const decision   = fullData.final_decision || {};
+    const extraction = fullData.payload_extraction || {};
+    const status     = decision.status || 'no_evidence';
 
+    // ── Configuración visual por status ──────────────────────────────────────
+    const statusCfg = {
+      payload_found: {
+        badgeCls: 'stego-lsb',
+        icon:     'bi-lock-fill',
+        color:    '#7c3aed',                    // lila — evidencia LSB directa
+      },
+      ml_suspicious: {
+        badgeCls: 'stego',
+        icon:     'bi-exclamation-triangle-fill',
+        color:    'var(--danger)',              // rojo — sospecha ML
+      },
+      no_evidence: {
+        badgeCls: 'cover',
+        icon:     'bi-shield-check-fill',
+        color:    'var(--success)',             // verde — sin evidencia
+      },
+    };
+    const cfg = statusCfg[status] || statusCfg.no_evidence;
+
+    // ── Badge + título ────────────────────────────────────────────────────────
     document.getElementById('result-badge').className =
-      `result-badge mx-auto mb-2 ${data.prediction}`;
-    document.getElementById('result-icon').className =
-      `bi ${isStego ? 'bi-exclamation-triangle-fill' : 'bi-check-circle-fill'}`;
-    document.getElementById('result-label').textContent  = data.label;
-    document.getElementById('result-label').style.color  = isStego ? 'var(--danger)' : 'var(--success)';
-    document.getElementById('result-filename').textContent = data.filename;
+      `result-badge mx-auto mb-2 ${cfg.badgeCls}`;
+    document.getElementById('result-icon').className  = `bi ${cfg.icon}`;
 
-    const probBar  = document.getElementById('prob-bar');
+    const labelEl = document.getElementById('result-label');
+    labelEl.textContent = decision.title || 'Análisis completado';
+    labelEl.style.color = cfg.color;
+
+    document.getElementById('result-filename').textContent = mlData.filename;
+
+    // ── Probabilidad ML (barra secundaria) ────────────────────────────────────
+    const prob    = mlData.probability_percent;
+    const probBar = document.getElementById('prob-bar');
     probBar.style.width = `${prob}%`;
-    probBar.className   = `progress-bar ${data.prediction}`;
+    probBar.className   = `progress-bar ${mlData.prediction}`;
     document.getElementById('prob-text').textContent = `${prob}%`;
 
+    // ── Nivel de confianza ML ─────────────────────────────────────────────────
     const confMap = {
       'Alta':  ['bg-success', 'Alta'],
       'Media': ['bg-warning text-dark', 'Media'],
       'Baja':  ['bg-danger', 'Baja'],
     };
-    const [cls, lbl] = confMap[data.confidence] || ['bg-secondary', data.confidence];
+    const [cls, lbl] = confMap[mlData.confidence] || ['bg-secondary', mlData.confidence];
     const cb = document.getElementById('confidence-badge');
     cb.className   = `badge ${cls}`;
     cb.textContent = lbl;
 
-    document.getElementById('explanation-text').textContent = data.explanation;
+    // ── Explicación integrada ─────────────────────────────────────────────────
+    // Para "payload_found": mostrar el resumen LSB + nota sobre ML bajo
+    // Para otros casos: usar la explicación del ML como referencia
+    let explanation = decision.summary || '';
+    if (status === 'payload_found') {
+      const probPct = (mlData.probability * 100).toFixed(1);
+      explanation +=
+        ` El modelo ML registró ${probPct}% de probabilidad — esto puede ser bajo` +
+        ` cuando el mensaje es pequeño y no altera significativamente la` +
+        ` distribución estadística de los píxeles de la imagen.`;
+    } else if (mlData.explanation) {
+      explanation += (explanation ? ' ' : '') + mlData.explanation;
+    }
+    document.getElementById('explanation-text').textContent = explanation;
+
     document.getElementById('mock-result-warning').style.display =
-      data.mock_mode ? 'block' : 'none';
+      mlData.mock_mode ? 'block' : 'none';
 
     showAnalyzeState('result');
+
+    // Mostrar detalles técnicos LSB automáticamente (ya tenemos los datos)
+    displayFullAnalysis(fullData);
   }
 
   // ── PDF ───────────────────────────────────────────────────────────────────
@@ -177,36 +249,26 @@ function initAnalyzeTab() {
     }
   });
 
-  // ── Análisis LSB completo ─────────────────────────────────────────────────
-  fullAnaBtn.addEventListener('click', async () => {
-    if (!selectedFile) return;
-    fullAnaBtn.disabled  = true;
-    fullAnaBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Analizando LSB...';
-
-    try {
-      const fd = new FormData();
-      fd.append('image', selectedFile);
-      const data = await fetchJSON('/stego/full-analysis', { method: 'POST', body: fd });
-      lastFullData = data;
-      displayFullAnalysis(data);
-    } catch (e) { showAnalyzeError(e.message); }
-    finally {
-      fullAnaBtn.disabled  = false;
-      fullAnaBtn.innerHTML = '<i class="bi bi-layers me-2"></i>Análisis LSB completo';
+  // ── "Ver detalles técnicos" — hace scroll a la sección ya poblada ──────────
+  fullAnaBtn.addEventListener('click', () => {
+    const wrap = document.getElementById('full-analysis-result');
+    if (wrap && wrap.style.display !== 'none') {
+      wrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   });
 
+  // ── displayFullAnalysis — rellena la sección de detalles técnicos LSB ──────
   function displayFullAnalysis(data) {
     const wrap = document.getElementById('full-analysis-result');
     wrap.style.display = 'block';
 
-    // Stats por canal
-    const grid = document.getElementById('lsb-stats-grid');
+    // Estadísticas por canal
+    const grid    = document.getElementById('lsb-stats-grid');
     grid.innerHTML = '';
-    const lsb = data.lsb_analysis || {};
+    const lsb     = data.lsb_analysis || {};
     const chStats = lsb.channel_stats || {};
-    ['R','G','B'].forEach(ch => {
-      const s = chStats[ch];
+    ['R', 'G', 'B'].forEach(ch => {
+      const s     = chStats[ch];
       if (!s) return;
       const color = ch === 'R' ? '#ef4444' : ch === 'G' ? '#22c55e' : '#3b82f6';
       grid.innerHTML += `
@@ -215,27 +277,26 @@ function initAnalyzeTab() {
             <div class="fw-bold" style="color:${color}">Canal ${ch}</div>
             <div class="small text-muted">0s: ${s.zeros.toLocaleString()}</div>
             <div class="small text-muted">1s: ${s.ones.toLocaleString()}</div>
-            <div class="small">ratio 1s: <strong>${(s.ratio_ones*100).toFixed(1)}%</strong></div>
+            <div class="small">ratio 1s: <strong>${(s.ratio_ones * 100).toFixed(1)}%</strong></div>
             <div class="small text-muted">H: ${s.entropy}</div>
           </div>
         </div>`;
     });
 
-    // Badge cabecera
+    // Badge: cabecera del sistema
     const headerBadge = document.getElementById('lsb-header-badge');
-    if (lsb.has_system_header) {
-      headerBadge.innerHTML = `<span class="badge bg-success fs-6">
-        <i class="bi bi-check-circle-fill me-1"></i>Cabecera StegoDetect detectada</span>`;
-    } else {
-      headerBadge.innerHTML = `<span class="badge bg-secondary">
-        <i class="bi bi-x-circle me-1"></i>Sin cabecera del sistema</span>`;
-    }
+    headerBadge.innerHTML = lsb.has_system_header
+      ? `<span class="badge bg-success fs-6">
+           <i class="bi bi-check-circle-fill me-1"></i>Cabecera StegoDetect detectada
+         </span>`
+      : `<span class="badge bg-secondary">
+           <i class="bi bi-x-circle me-1"></i>Sin cabecera del sistema
+         </span>`;
 
     // Nota de aleatoriedad
-    document.getElementById('lsb-randomness').textContent =
-      lsb.randomness_note || '';
+    document.getElementById('lsb-randomness').textContent = lsb.randomness_note || '';
 
-    // Extracción de payload
+    // Bloque de extracción
     const ext        = data.payload_extraction || {};
     const foundBlock = document.getElementById('payload-found-block');
     const notBlock   = document.getElementById('payload-not-found-block');
@@ -263,16 +324,6 @@ function initAnalyzeTab() {
       } else {
         dlBtn.style.display = 'none';
       }
-
-      // CSV posiciones
-      const csvBtn = document.getElementById('download-csv-full-btn');
-      if (ext.positions_summary) {
-        csvBtn.style.display = 'inline-block';
-        // El CSV es del artifact_id de la extracción si existe
-      } else {
-        csvBtn.style.display = 'none';
-      }
-
     } else {
       foundBlock.style.display = 'none';
       notBlock.style.display   = 'block';

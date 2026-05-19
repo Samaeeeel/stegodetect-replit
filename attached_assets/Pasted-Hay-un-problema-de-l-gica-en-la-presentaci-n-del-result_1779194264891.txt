@@ -1,0 +1,157 @@
+Hay un problema de lógica en la presentación del resultado de análisis.
+
+La inserción y extracción LSB funcionan correctamente. Probé una imagen generada por el sistema llamada stego_b1e703ed.png que contiene el mensaje de texto:
+
+Papa
+
+En la sección de análisis LSB, la app detecta correctamente:
+- Cabecera StegoDetect detectada
+- Payload StegoDetect encontrado
+- Tipo: text
+- Nombre: message.txt
+- SHA-256 válido
+- Mensaje extraído: Papa
+
+Pero en la parte superior del resultado sigue apareciendo:
+
+“Sin mensaje oculto”
+“Probabilidad de detección 0%”
+
+Eso es incorrecto desde el punto de vista del sistema completo, porque aunque el modelo ML no detecte cambios estadísticos fuertes, el extractor LSB sí encontró y validó un payload real del sistema.
+
+Necesito que corrijas la lógica de decisión del módulo “Analizar imagen”.
+
+IMPORTANTE:
+No elimines el modelo ML.
+No cambies la arquitectura SRNet-lite.
+No reentrenes el modelo.
+No elimines la extracción LSB.
+No dañes las pestañas de ocultar y extraer información.
+No conviertas el análisis en mock.
+Solo corrige la lógica de fusión, textos y presentación del resultado.
+
+Contexto técnico:
+El sistema tiene dos fuentes de evidencia:
+
+1. Modelo ML de estegoanálisis:
+   - Es probabilístico.
+   - Puede dar baja probabilidad cuando el payload es muy pequeño.
+   - No debe ser la única fuente para decidir si hay mensaje oculto.
+
+2. Extracción LSB con cabecera STEGODETECTv1:
+   - Si encuentra cabecera válida, payload válido y SHA-256 válido, eso es evidencia directa de que sí existe un mensaje oculto.
+   - Esta evidencia debe tener prioridad sobre el resultado ML.
+
+Nueva lógica obligatoria de decisión:
+
+Caso A — payload_found = true y sha256_valid = true:
+- Resultado principal:
+  “Mensaje oculto encontrado”
+- Subtítulo:
+  “Payload recuperado mediante extracción LSB del sistema”
+- Color/estado:
+  alerta positiva o técnica, no “sin mensaje”
+- Mostrar:
+  - mensaje extraído si es texto
+  - botón de descarga si es archivo
+  - tipo de payload
+  - nombre original
+  - tamaño
+  - MIME
+  - SHA-256 válido
+  - algoritmo
+  - posiciones usadas
+- El resultado ML debe mostrarse aparte como:
+  “Resultado del modelo ML: baja probabilidad estadística”
+  o
+  “El modelo ML no detectó una alteración significativa, posiblemente por tamaño reducido del payload.”
+
+Caso B — payload_found = false pero ml_detection.prediction = stego o ml_score >= threshold:
+- Resultado principal:
+  “Posible mensaje oculto detectado”
+- Subtítulo:
+  “El modelo ML detectó patrones compatibles con esteganografía, pero no se encontró una cabecera compatible con el formato StegoDetect.”
+- Mostrar:
+  - probabilidad ML
+  - threshold
+  - análisis LSB
+  - advertencia: “No se pudo extraer payload porque puede usar otro algoritmo, otra clave o no tener cabecera del sistema.”
+
+Caso C — payload_found = false y ML bajo:
+- Resultado principal:
+  “Sin evidencia de mensaje oculto”
+- Subtítulo:
+  “No se encontró payload compatible y el modelo ML no detectó patrones significativos.”
+- No decir de forma absoluta que no existe mensaje oculto.
+- Usar mejor:
+  “Sin evidencia detectable”
+  en lugar de:
+  “Sin mensaje oculto”
+
+Cambios concretos requeridos:
+
+1. En frontend/static/js/app.js:
+   - Revisar la función que renderiza el resultado de “Analizar imagen”.
+   - Si se llama a /stego/full-analysis, usar primero payload_extraction.payload_found.
+   - Si payload_found es true, el título superior debe ser “Mensaje oculto encontrado”, aunque ml_detection.score sea 0%.
+   - No permitir que el resultado ML sobrescriba el resultado LSB.
+   - Cambiar la etiqueta “Probabilidad de detección” por “Probabilidad ML” o “Puntaje del modelo ML”.
+   - Agregar un bloque llamado “Decisión integrada” que explique de dónde sale el resultado final.
+
+2. En backend/api/stego_routes.py o backend/api/routes.py:
+   - Verificar que /stego/full-analysis devuelva una estructura clara:
+     {
+       "final_decision": {
+         "status": "payload_found" | "ml_suspicious" | "no_evidence",
+         "title": "...",
+         "summary": "...",
+         "evidence_source": "lsb_extraction" | "ml_detection" | "none"
+       },
+       "ml_detection": {...},
+       "lsb_analysis": {...},
+       "payload_extraction": {...}
+     }
+
+3. Si el endpoint actual /analyze solo usa ML:
+   - Mantenerlo para compatibilidad.
+   - Pero en la pestaña “Analizar imagen” del frontend usar /stego/full-analysis para mostrar el análisis completo.
+   - O integrar en /analyze el intento de extracción LSB, siempre sin romper compatibilidad.
+
+4. Ajustar los textos del resultado principal:
+   - No usar “Sin mensaje oculto” cuando payload_found sea true.
+   - No usar “Sin mensaje oculto” como afirmación absoluta.
+   - Usar “Sin evidencia detectable” cuando no haya cabecera y el ML sea bajo.
+
+5. Agregar una explicación técnica visible cuando ocurra este caso:
+   “El extractor LSB recuperó un payload válido del sistema. El modelo ML puede mostrar baja probabilidad porque el mensaje oculto es muy pequeño y no altera significativamente la distribución estadística de la imagen.”
+
+6. Revisar el reporte PDF:
+   - Si payload_found = true, el reporte debe decir:
+     “Mensaje oculto encontrado mediante extracción LSB”
+   - No debe decir “sin mensaje oculto” solo porque el ML dio bajo.
+   - Debe incluir ambas cosas:
+     a) Resultado ML
+     b) Resultado LSB/extracción
+   - La conclusión debe priorizar la extracción válida.
+
+7. Pruebas obligatorias:
+   - Ocultar texto “Papa” en una imagen.
+   - Analizar la imagen stego generada.
+   - El resultado principal debe decir:
+     “Mensaje oculto encontrado”
+   - Debe mostrar:
+     “Mensaje extraído: Papa”
+   - Debe mostrar:
+     “SHA-256 válido”
+   - El modelo ML puede seguir mostrando 0% o baja probabilidad, pero solo como resultado ML secundario.
+   - Analizar una imagen limpia:
+     debe decir “Sin evidencia detectable” si no hay payload ni detección ML.
+   - Analizar una imagen con ML alto pero sin cabecera:
+     debe decir “Posible mensaje oculto detectado”, no intentar inventar payload.
+
+8. Al final dime:
+   - Qué archivo modificaste.
+   - Qué cambió en la lógica de decisión.
+   - Qué endpoint usa ahora la pestaña “Analizar imagen”.
+   - Cómo se ve el resultado cuando payload_found=true y ML=0%.
+   - Confirma que el caso “Papa” ahora aparece como mensaje oculto encontrado.

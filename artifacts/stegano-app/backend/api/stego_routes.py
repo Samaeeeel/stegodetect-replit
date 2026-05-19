@@ -222,7 +222,10 @@ async def full_analysis(
     except Exception as exc:
         capacity = {"error": str(exc)}
 
+    final_decision = _build_final_decision(ml_result, lsb_analysis, extraction)
+
     return JSONResponse({
+        "final_decision":     final_decision,
         "ml_detection":       ml_result,
         "lsb_analysis":       lsb_analysis,
         "payload_extraction": extraction,
@@ -305,6 +308,58 @@ def _parse_channels(channels_str: str) -> tuple:
             result.append(c)
             seen.add(c)
     return tuple(result) if result else ("R", "G", "B")
+
+
+def _build_final_decision(ml: dict, lsb: dict, extraction: dict) -> dict:
+    """
+    Determina la decisión final integrando las dos fuentes de evidencia:
+    1. Extracción LSB con cabecera STEGODETECTv1 (evidencia directa — prioridad alta)
+    2. Detector ML SRNet-lite (evidencia probabilística — secundaria)
+
+    Casos:
+      A. payload_found + sha256_valid → "Mensaje oculto encontrado" (LSB gana)
+      B. ML stego/sospechoso, sin cabecera → "Posible mensaje oculto detectado"
+      C. Sin evidencia en ninguno → "Sin evidencia detectable"
+    """
+    # Caso A: extracción LSB exitosa con integridad verificada — máxima prioridad
+    if extraction.get("payload_found") and extraction.get("sha256_valid"):
+        return {
+            "status":          "payload_found",
+            "title":           "Mensaje oculto encontrado",
+            "summary":         (
+                "Se encontró y validó un payload mediante extracción LSB del sistema "
+                "(cabecera STEGODETECTv1 detectada, SHA-256 verificado)."
+            ),
+            "evidence_source": "lsb_extraction",
+        }
+
+    # Caso B: ML detecta algo pero sin cabecera del sistema
+    pred = ml.get("prediction", "cover")
+    prob = ml.get("probability", 0.0)
+    thr  = ml.get("threshold") or 0.0404
+
+    if pred == "stego" or prob >= thr:
+        return {
+            "status":          "ml_suspicious",
+            "title":           "Posible mensaje oculto detectado",
+            "summary":         (
+                "El modelo ML detectó patrones estadísticos compatibles con esteganografía, "
+                "pero no se encontró una cabecera StegoDetect compatible. "
+                "El contenido puede usar otro algoritmo, formato o clave."
+            ),
+            "evidence_source": "ml_detection",
+        }
+
+    # Caso C: sin evidencia en ninguna fuente
+    return {
+        "status":          "no_evidence",
+        "title":           "Sin evidencia detectable",
+        "summary":         (
+            "No se encontró payload compatible con el formato del sistema "
+            "y el modelo ML no detectó patrones estadísticos significativos."
+        ),
+        "evidence_source": "none",
+    }
 
 
 def _build_summary(ml: dict, lsb: dict, extraction: dict) -> str:
