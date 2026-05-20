@@ -1,0 +1,188 @@
+Necesito una corrección visual y lógica puntual. No quiero que reconstruyas la app ni que hagas cambios grandes. Haz solo un parche mínimo.
+
+Problema actual:
+Cuando analizo una imagen generada por el propio sistema StegoDetect con payload oculto, la app muestra correctamente:
+
+- Mensaje oculto encontrado
+- Cabecera STEGODETECTv1 detectada
+- SHA-256 válido
+- Payload recuperado
+
+Pero en la parte superior sigue apareciendo:
+
+- Puntaje ML de esteganografía: 0%
+- Fiabilidad: Alta — baja evidencia de estego
+
+Eso confunde, porque parece que el sistema dice al mismo tiempo:
+“sí tiene mensaje oculto” y “hay baja evidencia de estego”.
+
+Lo correcto:
+Si payload_found=true y sha256_valid=true, el resultado principal debe basarse en la extracción LSB validada, no en el puntaje ML.
+
+IMPORTANTE:
+No cambies el modelo.
+No cambies el checkpoint.
+No cambies SRNet-lite.
+No cambies la lógica de inserción/extracción LSB.
+No reentrenes nada.
+No hagas rediseño completo.
+No instales dependencias nuevas.
+No gastes recursos innecesarios.
+Solo corrige textos, prioridad visual y reporte si aplica.
+
+Cambio requerido en la pantalla principal:
+
+Caso A — payload_found=true y sha256_valid=true:
+
+La tarjeta superior debe mostrar:
+
+Título:
+Mensaje oculto encontrado
+
+Evidencia principal:
+Extracción LSB StegoDetect
+
+Certeza de extracción:
+100%
+
+Confiabilidad:
+Alta — payload validado por cabecera STEGODETECTv1 y SHA-256
+
+Explicación:
+“Se encontró y validó información oculta mediante extracción LSB del sistema. La presencia del payload fue confirmada mediante cabecera STEGODETECTv1 y verificación SHA-256. Esta evidencia directa tiene prioridad sobre el puntaje del modelo ML.”
+
+No mostrar arriba:
+- Puntaje ML de esteganografía: 0%
+- Alta — baja evidencia de estego
+- baja evidencia de estego
+
+Eso solo puede aparecer en un bloque secundario llamado:
+
+Resultado ML secundario
+
+Ahí debe decir:
+“El modelo ML asignó un puntaje bajo, pero no se usa como decisión principal porque la extracción LSB validó un payload real.”
+
+En otras palabras:
+Cuando hay payload StegoDetect válido, ocultar o mover el puntaje ML a una sección secundaria. No debe aparecer como métrica principal.
+
+Cambio requerido de etiquetas:
+
+Reemplazar en el caso payload_found:
+
+“Puntaje ML de esteganografía”
+por:
+“Certeza de extracción LSB”
+
+Valor:
+100%
+
+Reemplazar:
+“Fiabilidad de interpretación: Alta — baja evidencia de estego”
+por:
+“Confiabilidad: Alta — payload validado”
+
+Reemplazar:
+“Compatibilidad con dominio del modelo”
+por una sección secundaria:
+“Resultado ML secundario”
+o
+“Aplicabilidad del modelo ML”
+
+Cambio en la lógica visual:
+
+Si final_decision.status == "payload_found":
+
+1. El componente principal NO debe renderizar ml_score como barra principal.
+2. Debe renderizar extraction_confidence = 100%.
+3. Debe renderizar evidence_source = "Extracción LSB StegoDetect".
+4. Debe renderizar reliability = "Alta — payload validado".
+5. El puntaje ML debe moverse abajo como dato técnico secundario.
+
+Si final_decision.status != "payload_found":
+Mantener el comportamiento actual:
+- ML alto dentro de dominio → posibles patrones compatibles
+- ML alto fuera de dominio → resultado no concluyente
+- ML bajo → sin evidencia detectable
+
+Cambio en PDF integrado:
+
+Si payload_found=true y sha256_valid=true, el PDF debe mostrar como resultado principal:
+
+Decisión general:
+Mensaje oculto encontrado
+
+Certeza de extracción LSB:
+100%
+
+Evidencia principal:
+Cabecera STEGODETECTv1 + SHA-256 válido
+
+El PDF NO debe mostrar como resultado principal:
+Puntaje ML 0%
+Baja evidencia de estego
+Sin mensaje oculto
+
+Puede incluir el ML solo en una sección secundaria:
+“Resultado ML complementario”
+
+Con texto:
+“El modelo ML asignó un puntaje bajo; sin embargo, la decisión final se basa en la extracción LSB validada.”
+
+Archivos probables a tocar:
+- frontend/static/js/app.js
+- frontend/index.html
+- frontend/static/css/main.css, solo si hace falta
+- backend/services/report_service.py, solo para ajustar el PDF integrado
+
+No tocar:
+- backend/services/model_service.py salvo que solo sea texto
+- checkpoints
+- modelo
+- entrenamiento
+- extracción/inserción LSB
+
+Pruebas obligatorias:
+
+Prueba 1:
+Analizar imagen StegoDetect con PDF oculto.
+Debe verse:
+- Mensaje oculto encontrado
+- Certeza de extracción LSB: 100%
+- Confiabilidad: Alta — payload validado
+- Tipo: pdf
+- SHA-256 válido
+
+No debe verse arriba:
+- Puntaje ML 0%
+- Baja evidencia de estego
+
+Prueba 2:
+Analizar imagen StegoDetect con texto oculto.
+Debe verse:
+- Mensaje oculto encontrado
+- Certeza de extracción LSB: 100%
+- Mensaje extraído visible
+- SHA-256 válido
+
+Prueba 3:
+Analizar imagen BossBase stego sin cabecera StegoDetect.
+Debe verse:
+- Posibles patrones compatibles con esteganografía
+- Evidencia principal: Modelo ML
+- Puntaje ML de esteganografía: alto
+- Payload StegoDetect: no encontrado
+
+Prueba 4:
+Analizar imagen externa/wallpaper.
+Si ML da alto:
+- Resultado ML no concluyente en imagen externa
+- No afirmar de forma absoluta que contiene mensaje oculto
+
+Respuesta final requerida:
+Dime únicamente:
+1. Qué archivo modificaste.
+2. Qué cambió en el caso payload_found.
+3. Si ahora la métrica principal es “Certeza de extracción LSB: 100%”.
+4. Si el puntaje ML queda como dato secundario.
+5. Confirma que no tocaste modelo, checkpoint ni entrenamiento.

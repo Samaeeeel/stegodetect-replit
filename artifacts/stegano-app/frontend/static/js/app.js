@@ -206,42 +206,85 @@ function initAnalyzeTab() {
 
     document.getElementById('result-filename').textContent = mlData.filename;
 
-    // ── Puntaje ML de esteganografía (antes "Probabilidad") ──────────────────
-    const prob    = mlData.probability_percent;
-    const probBar = document.getElementById('prob-bar');
-    probBar.style.width = `${prob}%`;
-    probBar.className   = `progress-bar ${mlData.prediction}`;
-    document.getElementById('prob-text').textContent = `${prob}%`;
+    // ── Métrica principal: cambia según haya payload LSB validado ────────────
+    // Caso A (payload_found+sha256_valid): la métrica principal es la certeza
+    // de extracción LSB (100%), NO el puntaje ML. El score ML se mueve a un
+    // bloque secundario para no confundir al usuario.
+    // Caso B/C/D: comportamiento clásico — puntaje ML como métrica principal.
+    const prob       = mlData.probability_percent;
+    const probBar    = document.getElementById('prob-bar');
+    const probText   = document.getElementById('prob-text');
+    const primaryLbl = document.getElementById('primary-metric-label');
+    const relLbl     = document.getElementById('reliability-label');
+    const cb         = document.getElementById('confidence-badge');
+    const domainRow  = document.getElementById('domain-row');
+    const mlSecBlock = document.getElementById('ml-secondary-block');
+    const mlSecScore = document.getElementById('ml-secondary-score');
+    const sha_ok     = !!extraction.sha256_valid;
 
-    // ── Fiabilidad de interpretación (combina puntaje + dominio) ─────────────
-    // Reemplaza la antigua "Nivel de confianza" — la fiabilidad ahora depende
-    // de si la imagen es compatible con el dominio de entrenamiento.
-    const relMap = {
-      high:   'bg-success',
-      medium: 'bg-warning text-dark',
-      low:    'bg-danger',
-    };
-    const cb = document.getElementById('confidence-badge');
-    cb.className   = `badge ${relMap[reliability.level] || 'bg-secondary'}`;
-    cb.textContent = reliability.label || 'No determinada';
-    if (reliability.tooltip) cb.title = reliability.tooltip;
+    if (status === 'payload_found' && sha_ok) {
+      // Métrica principal = Certeza de extracción LSB 100%
+      primaryLbl.textContent = 'Certeza de extracción LSB';
+      probBar.style.width    = '100%';
+      probBar.className      = 'progress-bar bg-success';
+      probText.textContent   = '100%';
 
-    // ── Compatibilidad con dominio del modelo ────────────────────────────────
-    const domainMap = {
-      in_domain:               ['bg-success', 'Dentro del dominio'],
-      possibly_out_of_domain:  ['bg-warning text-dark', 'Parcialmente compatible'],
-      out_of_domain:           ['bg-danger', 'Fuera del dominio'],
-    };
-    const [domCls, domLbl] = domainMap[applicability.domain_status] || ['bg-secondary', '—'];
-    const db = document.getElementById('domain-badge');
-    db.className   = `badge ${domCls}`;
-    db.textContent = domLbl;
+      // Confiabilidad fija — payload validado por cabecera + SHA-256
+      relLbl.textContent = 'Confiabilidad';
+      cb.className       = 'badge bg-success';
+      cb.textContent     = 'Alta — payload validado';
+      cb.title           = 'Cabecera STEGODETECTv1 detectada y SHA-256 verificado';
+
+      // Ocultar la fila de compatibilidad de dominio — irrelevante aquí
+      domainRow.style.display = 'none';
+
+      // Mostrar el ML como dato secundario (no protagonista)
+      mlSecBlock.style.display = 'block';
+      mlSecScore.textContent   = `${prob}%`;
+    } else {
+      // Comportamiento clásico para los otros 3 estados
+      primaryLbl.textContent = 'Puntaje ML de esteganografía';
+      probBar.style.width    = `${prob}%`;
+      probBar.className      = `progress-bar ${mlData.prediction}`;
+      probText.textContent   = `${prob}%`;
+
+      relLbl.textContent = 'Fiabilidad de interpretación';
+      const relMap = {
+        high:   'bg-success',
+        medium: 'bg-warning text-dark',
+        low:    'bg-danger',
+      };
+      cb.className   = `badge ${relMap[reliability.level] || 'bg-secondary'}`;
+      cb.textContent = reliability.label || 'No determinada';
+      if (reliability.tooltip) cb.title = reliability.tooltip;
+
+      domainRow.style.display = '';
+      const domainMap = {
+        in_domain:               ['bg-success', 'Dentro del dominio'],
+        possibly_out_of_domain:  ['bg-warning text-dark', 'Parcialmente compatible'],
+        out_of_domain:           ['bg-danger', 'Fuera del dominio'],
+      };
+      const [domCls, domLbl] = domainMap[applicability.domain_status] || ['bg-secondary', '—'];
+      const db = document.getElementById('domain-badge');
+      db.className   = `badge ${domCls}`;
+      db.textContent = domLbl;
+
+      mlSecBlock.style.display = 'none';
+    }
 
     // ── Explicación integrada (honesta — sin "0% probabilidad que no…") ─────
-    // El summary del backend ya está calibrado para cada uno de los 4 casos.
-    // No concatenamos la explicación cruda del ML aquí — eso confundiría al
-    // usuario en casos out_of_domain donde el puntaje no es interpretable.
-    document.getElementById('explanation-text').textContent = decision.summary || '';
+    // En payload_found usamos un texto explícito que prioriza la extracción
+    // LSB; en los demás casos respetamos el summary del backend.
+    const explanationEl = document.getElementById('explanation-text');
+    if (status === 'payload_found' && sha_ok) {
+      explanationEl.textContent =
+        'Se encontró y validó información oculta mediante extracción LSB del sistema. ' +
+        'La presencia del payload fue confirmada mediante cabecera STEGODETECTv1 y ' +
+        'verificación SHA-256. Esta evidencia directa tiene prioridad sobre el puntaje ' +
+        'del modelo ML.';
+    } else {
+      explanationEl.textContent = decision.summary || '';
+    }
 
     document.getElementById('mock-result-warning').style.display =
       mlData.mock_mode ? 'block' : 'none';

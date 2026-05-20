@@ -334,8 +334,14 @@ def _build_integrated_pdf(record: dict, output_path: Path) -> None:
     story.append(_build_table(ext_rows, styles))
     story.append(Spacer(1, 0.5*cm))
 
-    # ── SECCIÓN 3: Modelo ML ──────────────────────────────────────────────────
-    story.append(Paragraph("3. Resultado del modelo ML", styles["section_header"]))
+    # ── SECCIÓN 3: Modelo ML (título cambia si hay payload) ──────────────────
+    # Cuando hay payload LSB validado, el ML es complementario, no protagonista.
+    is_payload = (decision.get("status") == "payload_found") and bool(extraction.get("sha256_valid"))
+    ml_section_title = (
+        "3. Resultado ML complementario" if is_payload
+        else "3. Resultado del modelo ML"
+    )
+    story.append(Paragraph(ml_section_title, styles["section_header"]))
     story.append(Spacer(1, 0.2*cm))
     prob = ml.get("probability", 0.0) or 0.0
     thr  = ml.get("threshold")   or 0.0404
@@ -347,11 +353,19 @@ def _build_integrated_pdf(record: dict, output_path: Path) -> None:
         ["Fiabilidad de interpretación:", reliability.get("label", "—")],
     ], styles))
     story.append(Spacer(1, 0.3*cm))
-    if found and prob < thr:
+    if is_payload:
+        story.append(Paragraph(
+            "<i>El modelo ML asignó un puntaje bajo; sin embargo, la decisión final "
+            "se basa en la extracción LSB validada. Puntajes ML bajos son comunes "
+            "en payloads pequeños que no alteran significativamente la distribución "
+            "estadística.</i>",
+            styles["body_justified"]
+        ))
+        story.append(Spacer(1, 0.3*cm))
+    elif found and prob < thr:
         story.append(Paragraph(
             "<i>Nota: el puntaje ML es bajo, pero la decisión final se basa en la "
-            "extracción LSB validada. Puntajes ML bajos son comunes en payloads "
-            "pequeños que no alteran significativamente la distribución estadística.</i>",
+            "extracción LSB validada.</i>",
             styles["body_justified"]
         ))
         story.append(Spacer(1, 0.3*cm))

@@ -124,5 +124,47 @@
     "label": "Con mensaje oculto",
     "probability_percent": 100.0,
     "has_hidden_message": true
+  },
+  {
+    "id": "9b714d70-153a-44ef-a49d-a3bcf816642c",
+    "filename": "3698 (1).png",
+    "prediction": "stego",
+    "probability": 1.0,
+    "confidence": "Alta",
+    "explanation": "Puntaje ML de esteganografía: 100.0%. El modelo detectó patrones estadísticos en los bits menos significativos compatibles con esteganografía LSB dentro de su dominio de entrenamiento. Validar con el análisis técnico LSB antes de concluir.",
+    "model_version": "srnet-lite-v1.0",
+    "created_at": "2026-05-19T23:59:34.988709",
+    "mock_mode": false,
+    "label": "Con mensaje oculto",
+    "probability_percent": 100.0,
+    "has_hidden_message": true
+  },
+  {
+    "id": "c557e4a9-9f32-4114-a314-660709201e47",
+    "filename": "3687.png",
+    "prediction": "cover",
+    "probability": 0.0,
+    "confidence": "Baja",
+    "explanation": "Puntaje ML de esteganografía: 0.0%. El modelo no detectó patrones estadísticos compatibles con esteganografía LSB dentro de su dominio de entrenamiento. Esto representa baja evidencia ML, pero no descarta técnicas externas, cifradas o fuera del alcance del modelo.",
+    "model_version": "srnet-lite-v1.0",
+    "created_at": "2026-05-20T00:00:33.695337",
+    "mock_mode": false,
+    "label": "Sin mensaje oculto",
+    "probability_percent": 0.0,
+    "has_hidden_message": false
+  },
+  {
+    "id": "b41dbb8d-2b19-4bcb-822f-0659bfd39157",
+    "filename": "stego_3684527e.png",
+    "prediction": "cover",
+    "probability": 0.0,
+    "confidence": "Baja",
+    "explanation": "Puntaje ML de esteganografía: 0.0%. El modelo no detectó patrones estadísticos compatibles con esteganografía LSB dentro de su dominio de entrenamiento. Esto representa baja evidencia ML, pero no descarta técnicas externas, cifradas o fuera del alcance del modelo.",
+    "model_version": "srnet-lite-v1.0",
+    "created_at": "2026-05-20T00:00:47.602418",
+    "mock_mode": false,
+    "label": "Sin mensaje oculto",
+    "probability_percent": 0.0,
+    "has_hidden_message": false
   }
 ]
