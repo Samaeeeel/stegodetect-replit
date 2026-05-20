@@ -219,9 +219,11 @@ async def full_analysis(
     except Exception as exc:
         lsb_analysis = {"error": str(exc)}
 
-    # 3. Intento de extracción
+    # 3. Intento de extracción (auto — prueba bits 1..4, RGB)
+    #    Antes solo probaba bits_per_channel=1, lo que producía falsos
+    #    negativos para imágenes embebidas con 2+ bits.
     try:
-        extraction = _svc.extract_payload(image_path)
+        extraction = _svc.auto_extract_payload(image_path)
         if extraction.get("payload_found") and extraction.get("extracted_filename"):
             aid = extraction.get("artifact_id", "")
             extraction["download_payload_url"] = f"/stego/download/{aid}/payload"

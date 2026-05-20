@@ -1,0 +1,220 @@
+Hay un bug importante en /stego/full-analysis.
+
+Contexto:
+Inserté un PDF dentro de una imagen externa usando el propio sistema StegoDetect.
+
+Configuración usada al insertar:
+- Imagen cover: wallpaper JPG externo
+- Payload: PDF
+- bits_per_channel: 2
+- channels: RGB
+- salida: PNG generada por el sistema
+
+Luego probé dos cosas:
+
+1. En la pestaña “Extraer información”
+   - Seleccioné bits_per_channel = 2
+   - channels = RGB
+   - El sistema recuperó correctamente el PDF
+   - SHA-256 válido
+   - Payload recuperado correctamente
+
+2. En la pestaña “Analizar imagen”
+   - Subí la misma imagen stego generada por el sistema
+   - Pero el sistema mostró:
+     “Resultado ML no concluyente en imagen externa”
+   - También dice “Sin cabecera del sistema”
+   - Eso está mal, porque la imagen sí tiene payload StegoDetect y sí puede extraerse.
+
+Diagnóstico probable:
+El endpoint /stego/full-analysis está intentando extraer payload solamente con la configuración por defecto, probablemente:
+bits_per_channel = 1
+channels = RGB
+
+Pero esta imagen fue generada con:
+bits_per_channel = 2
+channels = RGB
+
+Por eso /stego/full-analysis no encuentra la cabecera, aunque el extractor manual sí la encuentra cuando uso 2 bits.
+
+Objetivo:
+Corregir /stego/full-analysis para que detecte automáticamente payloads StegoDetect aunque hayan sido insertados con 1 o 2 bits por canal.
+
+IMPORTANTE:
+No cambies el modelo.
+No cambies el checkpoint.
+No reentrenes.
+No cambies SRNet-lite.
+No rompas la inserción LSB.
+No rompas la extracción manual.
+No hagas rediseño grande.
+Haz un parche mínimo y bien probado.
+
+Cambios requeridos:
+
+1. Crear una función de auto-extracción
+
+En backend/services/steganography_service.py o donde corresponda, crear algo como:
+
+auto_extract_payload(image_path)
+
+Debe intentar extraer payload StegoDetect usando varias configuraciones:
+
+- bits_per_channel = 1, channels = RGB
+- bits_per_channel = 2, channels = RGB
+
+Opcional si ya está soportado:
+- bits_per_channel = 1, channels = R
+- bits_per_channel = 1, channels = G
+- bits_per_channel = 1, channels = B
+- bits_per_channel = 2, channels = R
+- bits_per_channel = 2, channels = G
+- bits_per_channel = 2, channels = B
+
+Pero como mínimo debe probar 1-bit RGB y 2-bit RGB.
+
+La función debe detenerse cuando encuentre:
+- cabecera STEGODETECTv1 válida
+- payload_found = true
+- sha256_valid = true
+
+Debe devolver:
+{
+  "payload_found": true,
+  "sha256_valid": true,
+  "bits_per_channel_detected": 2,
+  "channels_detected": ["R", "G", "B"],
+  ...
+}
+
+Si no encuentra nada, devolver payload_found=false.
+
+2. Usar auto-extracción en /stego/full-analysis
+
+En backend/api/stego_routes.py:
+
+Actualmente /stego/full-analysis parece llamar extract_payload con valores por defecto.
+
+Cambiar para que use auto_extract_payload.
+
+La decisión integrada debe priorizar:
+
+if auto_extraction.payload_found == true and auto_extraction.sha256_valid == true:
+    final_decision.status = "payload_found"
+    final_decision.title = "Mensaje oculto encontrado"
+    evidence_source = "lsb_extraction"
+    reliability = "high"
+
+Esto debe ocurrir aunque:
+- la imagen original sea wallpaper externo
+- domain_status sea out_of_domain
+- ML score sea 0%
+- ML score sea 100%
+
+Si hay payload StegoDetect válido, el dominio del modelo ML ya no debe afectar la decisión general.
+
+3. Ajustar model_applicability en este caso
+
+Si payload_found=true:
+- No mostrar como decisión principal “imagen externa no concluyente”.
+- La compatibilidad con el dominio solo debe mostrarse como dato secundario del ML.
+
+Ejemplo:
+“Modelo ML: resultado secundario; la decisión principal se basa en extracción LSB validada.”
+
+4. Frontend
+
+En la pestaña “Analizar imagen”, si full-analysis encuentra payload con auto-extracción:
+
+Debe mostrar:
+
+- Mensaje oculto encontrado
+- Certeza de extracción LSB: 100%
+- Confiabilidad: Alta — payload validado
+- Bits por canal detectados: 2
+- Canales detectados: RGB
+- Tipo: pdf
+- SHA-256 válido
+- Descargar archivo oculto
+
+No debe mostrar como decisión principal:
+- Resultado ML no concluyente en imagen externa
+- Sin cabecera del sistema
+
+Puede mostrar abajo, como información secundaria:
+- Imagen externa / fuera de dominio del modelo ML
+- Puntaje ML no concluyente
+Pero nunca debe sobrescribir la extracción válida.
+
+5. Reporte integrado PDF
+
+El PDF integrado también debe usar la auto-extracción.
+
+Para una imagen StegoDetect generada con 2 bits RGB debe decir:
+
+- Decisión general: Mensaje oculto encontrado
+- Evidencia principal: Extracción LSB StegoDetect
+- Certeza de extracción: 100%
+- Bits por canal detectados: 2
+- Canales detectados: RGB
+- Tipo de payload: pdf
+- SHA-256 válido
+
+No debe decir:
+- Resultado ML no concluyente como decisión principal
+- Sin mensaje oculto
+- Sin cabecera del sistema
+
+6. Pruebas obligatorias
+
+Prueba A:
+Insertar un PDF en una imagen externa con:
+- bits_per_channel = 2
+- channels = RGB
+
+Luego analizar esa imagen en “Analizar imagen”.
+
+Resultado esperado:
+- Mensaje oculto encontrado
+- Certeza LSB 100%
+- bits_per_channel_detected = 2
+- payload_type = pdf
+- SHA-256 válido
+
+Prueba B:
+Insertar texto “Papa” con:
+- bits_per_channel = 1
+- channels = RGB
+
+Analizar imagen.
+
+Resultado esperado:
+- Mensaje oculto encontrado
+- bits_per_channel_detected = 1
+- mensaje extraído visible
+
+Prueba C:
+Imagen externa limpia/wallpaper sin payload.
+
+Resultado esperado:
+- No debe inventar payload
+- Si ML alto y fuera de dominio:
+  “Resultado ML no concluyente en imagen externa”
+
+Prueba D:
+Imagen BossBase stego sin cabecera StegoDetect.
+
+Resultado esperado:
+- No debe inventar payload
+- Si ML alto y dominio compatible:
+  “Posibles patrones compatibles con esteganografía”
+
+7. Respuesta final requerida
+
+Al final dime:
+- Qué función hacía antes la extracción en /stego/full-analysis.
+- Si ahora usa auto_extract_payload.
+- Qué combinaciones prueba.
+- Si detectó correctamente el caso PDF con 2 bits RGB.
+- Qué archivos modificaste.
+- Confirma que no tocaste modelo, checkpoint ni entrenamiento.

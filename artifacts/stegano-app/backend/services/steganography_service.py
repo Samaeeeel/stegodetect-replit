@@ -274,6 +274,60 @@ class LSBSteganographyService:
             },
         }
 
+    # ── auto_extract_payload ──────────────────────────────────────────────────
+
+    def auto_extract_payload(
+        self,
+        stego_image_path: Path,
+        bits_to_try: Tuple[int, ...] = (1, 2, 3, 4),
+        channels: Tuple[str, ...] = ("R", "G", "B"),
+    ) -> Dict[str, Any]:
+        """
+        Intenta extraer un payload StegoDetect probando varias configuraciones
+        de bits_per_channel. Se detiene en el primer intento con cabecera
+        STEGODETECTv1 válida.
+
+        Necesario porque /stego/full-analysis no conoce los parámetros de
+        embebido y antes solo probaba bits_per_channel=1, lo que producía
+        falsos negativos para imágenes embebidas con 2+ bits.
+
+        Devuelve el dict de extract_payload enriquecido con
+        bits_per_channel_detected y channels_detected.
+        """
+        last_result: Dict[str, Any] = {
+            "payload_found": False,
+            "message": "No se encontró payload con ninguna configuración probada.",
+        }
+        attempts: List[Dict[str, Any]] = []
+
+        for bpc in bits_to_try:
+            try:
+                result = self.extract_payload(
+                    stego_image_path,
+                    bits_per_channel=bpc,
+                    channels=channels,
+                )
+            except Exception as exc:
+                attempts.append({"bits_per_channel": bpc, "error": str(exc)})
+                continue
+
+            attempts.append({
+                "bits_per_channel": bpc,
+                "payload_found":    bool(result.get("payload_found")),
+                "sha256_valid":     bool(result.get("sha256_valid")),
+            })
+
+            if result.get("payload_found"):
+                result["bits_per_channel_detected"] = bpc
+                result["channels_detected"]         = list(channels)
+                result["auto_extraction_attempts"]  = attempts
+                return result
+
+            last_result = result
+
+        last_result["auto_extraction_attempts"] = attempts
+        return last_result
+
     # ── extract_payload ───────────────────────────────────────────────────────
 
     def extract_payload(
