@@ -264,5 +264,19 @@
     "label": "Sin mensaje oculto",
     "probability_percent": 0.0,
     "has_hidden_message": false
+  },
+  {
+    "id": "75189377-c1e7-4a19-bfbf-b6ba0bfec4c5",
+    "filename": "stego_f02dea16.png",
+    "prediction": "stego",
+    "probability": 1.0,
+    "confidence": "Alta",
+    "explanation": "Puntaje ML de esteganografía: 100.0%. El modelo detectó patrones estadísticos en los bits menos significativos compatibles con esteganografía LSB dentro de su dominio de entrenamiento. Validar con el análisis técnico LSB antes de concluir.",
+    "model_version": "srnet-lite-v1.0",
+    "created_at": "2026-05-20T00:32:10.594354",
+    "mock_mode": false,
+    "label": "Con mensaje oculto",
+    "probability_percent": 100.0,
+    "has_hidden_message": true
   }
 ]
