@@ -106,12 +106,12 @@ def _build_pdf(result: AnalysisResult, output_path: Path) -> None:
     story.append(Paragraph("Alcance del Modelo ML", styles["section_header"]))
     story.append(Spacer(1, 0.2 * cm))
     alcance = (
-        "El modelo SRNet-lite fue entrenado con imágenes <b>BOSSBase</b> en formato "
-        "PNG (~512×512) y payloads LSB controlados (p005, p010, p020). El puntaje "
-        "es más confiable en imágenes similares al dominio de entrenamiento. En "
-        "imágenes externas (JPG, wallpapers, alta resolución, alta saturación de "
-        "color) el puntaje debe considerarse <b>orientativo, no concluyente</b>. "
-        "La extracción de payload sólo es concluyente cuando existe una cabecera "
+        "El modelo SRNet-lite fue <b>fine-tuned</b> con imágenes <b>BOSSBase</b> "
+        "(PNG ~512×512, baja saturación, payloads p005/p010/p020) <b>más un "
+        "dataset externo</b> (wallpapers, fotos de teléfono, imágenes web, "
+        "capturas y material comprimido). Threshold calibrado: <b>0.46</b>. "
+        "El resultado ML es <b>evidencia probabilística</b>, no una certeza absoluta. "
+        "La extracción de payload sólo es concluyente cuando existe cabecera "
         "<b>StegoDetect</b> y SHA-256 válido."
     )
     story.append(Paragraph(alcance, styles["body_justified"]))
@@ -406,13 +406,13 @@ def _build_integrated_pdf(record: dict, output_path: Path) -> None:
     story.append(HRFlowable(width="100%", thickness=1, color=colors.HexColor("#9ca3af")))
     story.append(Spacer(1, 0.3*cm))
     alcance = (
-        "<b>Alcance del modelo ML:</b> SRNet-lite fue entrenado con imágenes "
-        "BOSSBase en PNG (~512×512) y payloads LSB controlados (p005/p010/p020). "
-        "El puntaje es más confiable en imágenes similares al dominio de "
-        "entrenamiento; en imágenes externas, JPG, wallpapers o de alta resolución "
-        "debe considerarse <b>orientativo, no concluyente</b>. La extracción de "
-        "payload sólo es concluyente cuando existe cabecera <b>StegoDetect</b> y "
-        "SHA-256 válido."
+        "<b>Alcance del modelo ML:</b> SRNet-lite <b>fine-tuned</b> con BOSSBase "
+        "+ dataset externo (wallpapers, fotos de teléfono, imágenes web, capturas, "
+        "material comprimido). Threshold calibrado: <b>0.46</b>. El puntaje es "
+        "<b>evidencia probabilística</b>; en imágenes muy alejadas de los datos de "
+        "entrenamiento debe considerarse <b>orientativo, no concluyente</b>. La "
+        "extracción de payload sólo es concluyente cuando existe cabecera "
+        "<b>StegoDetect</b> y SHA-256 válido."
     )
     story.append(Paragraph(alcance, styles["note"]))
 
@@ -471,9 +471,9 @@ def _build_conclusion(decision: dict, extraction: dict, ml: dict, applicability:
     if status == "ml_suspicious_unverified":
         return (
             f"<b>Resultado ML no concluyente.</b> El modelo asignó un puntaje de "
-            f"{prob:.1f}%, pero la imagen está fuera del dominio de entrenamiento "
-            f"(BOSSBase PNG ~512×512). En estas condiciones el puntaje no es una "
-            f"probabilidad calibrada y NO debe interpretarse como detección "
+            f"{prob:.1f}%, pero la imagen se encuentra fuera del dominio de "
+            f"entrenamiento del modelo. En estas condiciones el puntaje debe "
+            f"interpretarse como evidencia probabilística, no como detección "
             f"concluyente. Tampoco se encontró payload StegoDetect recuperable."
         )
     return (

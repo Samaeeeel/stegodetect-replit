@@ -468,10 +468,10 @@ def _build_final_decision(
             "status":          "ml_suspicious_unverified",
             "title":           "Resultado ML no concluyente en imagen externa",
             "summary":         (
-                "El modelo asignó un puntaje alto, pero la imagen está fuera del "
-                "dominio de entrenamiento (BOSSBase PNG, ~512×512, baja saturación). "
-                "El puntaje sobre imágenes externas, JPG o de alta resolución no es "
-                "una probabilidad calibrada y NO debe interpretarse como detección "
+                "El modelo asignó un puntaje alto en una imagen con características "
+                "alejadas del dominio de entrenamiento. Aunque el modelo fue "
+                "fine-tuned con imágenes externas, el puntaje en estas condiciones "
+                "es evidencia probabilística y NO debe interpretarse como detección "
                 "concluyente. Se recomienda validación adicional o análisis sobre "
                 "una versión PNG sin compresión destructiva."
             ),

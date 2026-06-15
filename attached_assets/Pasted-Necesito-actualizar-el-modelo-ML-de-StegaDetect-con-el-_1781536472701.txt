@@ -1,0 +1,93 @@
+Necesito actualizar el modelo ML de StegaDetect con el modelo fine-tuned externo que acabo de entrenar en Colab.
+
+IMPORTANTE:
+- No refactorices todo el proyecto.
+- No cambies la lógica de esteganografía LSB embed/extract.
+- No cambies los endpoints /stego/embed, /stego/extract ni la lógica de extracción de payload con cabecera STEGODETECTv1.
+- No cambies la arquitectura SRNetLite salvo que sea estrictamente necesario para cargar los pesos.
+- Haz un parche mínimo y seguro.
+- Antes de modificar, inspecciona bien dónde están actualmente los checkpoints, model_metadata.json y cómo model_service.py carga el modelo y el threshold.
+
+Tengo un ZIP llamado export_replit.zip con estos archivos:
+
+1. srnet_lite_best_state_dict.pt
+2. recommended_threshold.json
+3. test_final_metrics.json
+4. model_metadata.json
+
+Objetivo:
+Reemplazar el modelo viejo por este modelo fine-tuned y hacer que el backend use el nuevo threshold 0.46 desde model_metadata.json.
+
+Contexto técnico del modelo:
+- model_name: ResidualSRNetLite
+- model_version: finetuned_external_domain_v1
+- checkpoint_file: srnet_lite_best_state_dict.pt
+- input_size: 128
+- input_channels: 3
+- threshold: 0.46
+- best_epoch: 8
+
+Métricas finales en test:
+- test_overall:
+  - AUC: 0.9998
+  - Accuracy: 0.9946
+  - Precision: 0.9979
+  - Recall: 0.9949
+  - F1-score: 0.9964
+  - TN=1565, FP=10, FN=24, TP=4701
+
+- test_external:
+  - AUC: 0.9743
+  - Accuracy: 0.9067
+  - Precision: 0.9539
+  - Recall: 0.9200
+  - F1-score: 0.9367
+  - Specificity: 0.8667
+  - FPR: 0.1333
+  - TN=65, FP=10, FN=18, TP=207
+
+Tareas exactas:
+
+1. Descomprimir export_replit.zip en una carpeta temporal.
+2. Localizar dónde el backend espera:
+   - srnet_lite_best_state_dict.pt
+   - model_metadata.json
+   - otros reportes o métricas del modelo.
+3. Hacer backup de los archivos viejos antes de reemplazarlos, por ejemplo:
+   - srnet_lite_best_state_dict.old.pt
+   - model_metadata.old.json
+4. Copiar los nuevos archivos a la ubicación correcta del backend:
+   - srnet_lite_best_state_dict.pt
+   - model_metadata.json
+   - recommended_threshold.json
+   - test_final_metrics.json
+5. Verificar que model_service.py o el servicio equivalente:
+   - cargue el checkpoint nuevo correctamente;
+   - lea threshold desde model_metadata.json;
+   - use threshold = 0.46;
+   - no siga usando hardcodeado el threshold viejo 0.0404.
+6. Si hay un domain_assessor o lógica de dominio externo:
+   - no la elimines;
+   - solo asegúrate de que el resultado ML use el nuevo modelo y threshold.
+7. Ajustar los textos del frontend/backend si aparece “modelo entrenado solo con BOSSBase”.
+   Ahora debe decir algo como:
+   “Modelo fine-tuned con BOSSBase e imágenes externas. El resultado ML es probabilístico.”
+8. Mantener la prioridad de decisión:
+   - Si extracción LSB encuentra payload con SHA-256 válido, la decisión final debe seguir siendo “Mensaje oculto encontrado”.
+   - Si no hay payload compatible, entonces se usa el modelo ML fine-tuned como evidencia probabilística.
+9. Ejecutar pruebas mínimas:
+   - /health debe mostrar mock_mode=false o modelo real activo.
+   - /analyze debe cargar el modelo sin error.
+   - /stego/full-analysis debe seguir funcionando.
+   - Una imagen StegoDetect con payload propio debe seguir mostrando “Mensaje oculto encontrado”.
+   - Una imagen limpia externa no debe decir “mensaje oculto encontrado” si no hay payload; como máximo debe mostrar resultado ML probabilístico.
+10. Al final dame un resumen con:
+   - archivos reemplazados;
+   - backups creados;
+   - ruta final del checkpoint;
+   - threshold activo leído por el backend;
+   - resultado de /health;
+   - resultado de una prueba /analyze;
+   - confirmación de que no tocaste la lógica LSB.
+
+No gastes tiempo en rediseñar UI ni en crear nuevas funciones grandes. Solo integración del modelo fine-tuned, threshold y metadata.

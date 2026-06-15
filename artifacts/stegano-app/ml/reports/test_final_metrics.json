@@ -1,0 +1,56 @@
+{
+  "threshold": 0.46,
+  "overall": {
+    "name": "test_overall",
+    "total": 6300,
+    "threshold": 0.46,
+    "auc": 0.9998,
+    "accuracy": 0.9946,
+    "balanced_accuracy": 0.9943,
+    "precision": 0.9979,
+    "recall": 0.9949,
+    "f1": 0.9964,
+    "specificity": 0.9937,
+    "fpr": 0.0063,
+    "TN": 1565,
+    "FP": 10,
+    "FN": 24,
+    "TP": 4701
+  },
+  "domain_metrics": [
+    {
+      "name": "test_bossbase",
+      "total": 6000,
+      "threshold": 0.46,
+      "auc": 1.0,
+      "accuracy": 0.999,
+      "balanced_accuracy": 0.9993,
+      "precision": 1.0,
+      "recall": 0.9987,
+      "f1": 0.9993,
+      "specificity": 1.0,
+      "fpr": 0.0,
+      "TN": 1500,
+      "FP": 0,
+      "FN": 6,
+      "TP": 4494
+    },
+    {
+      "name": "test_external",
+      "total": 300,
+      "threshold": 0.46,
+      "auc": 0.9743,
+      "accuracy": 0.9067,
+      "balanced_accuracy": 0.8933,
+      "precision": 0.9539,
+      "recall": 0.92,
+      "f1": 0.9367,
+      "specificity": 0.8667,
+      "fpr": 0.1333,
+      "TN": 65,
+      "FP": 10,
+      "FN": 18,
+      "TP": 207
+    }
+  ]
+}

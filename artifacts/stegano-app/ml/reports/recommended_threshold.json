@@ -1,0 +1,33 @@
+{
+  "recommended_threshold": 0.46,
+  "selection_rule": "external_recall>=0.90, bossbase_recall>=0.99, maximize external_specificity then external_f1",
+  "selected_row": {
+    "threshold": 0.46,
+    "overall_auc": 0.9994,
+    "overall_accuracy": 0.9951,
+    "overall_f1": 0.9967,
+    "overall_balanced_accuracy": 0.9957,
+    "external_auc": 0.982,
+    "external_accuracy": 0.9367,
+    "external_precision": 0.9858,
+    "external_recall": 0.9289,
+    "external_f1": 0.9565,
+    "external_specificity": 0.96,
+    "external_fpr": 0.04,
+    "external_TN": 72.0,
+    "external_FP": 3.0,
+    "external_FN": 16.0,
+    "external_TP": 209.0,
+    "bossbase_auc": 1.0,
+    "bossbase_accuracy": 0.998,
+    "bossbase_precision": 0.9996,
+    "bossbase_recall": 0.9978,
+    "bossbase_f1": 0.9987,
+    "bossbase_specificity": 0.9987,
+    "bossbase_fpr": 0.0013,
+    "bossbase_TN": 1498.0,
+    "bossbase_FP": 2.0,
+    "bossbase_FN": 10.0,
+    "bossbase_TP": 4490.0
+  }
+}

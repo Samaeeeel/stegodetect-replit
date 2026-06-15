@@ -9688,5 +9688,3647 @@
       "max_recommended_bytes": 3455783
     },
     "technical_summary": "ML (srnet-lite-v1.0): STEGO (100.0%) | Cabecera StegoDetect: no encontrada. | Distribución LSB cercana a 50/50 — posible contenido esteganografiado o ruido natural. | Payload extraído: tipo=pdf, 3619 bytes, SHA-256=OK."
+  },
+  {
+    "id": "9be851a1-68cc-458c-af22-5ffc3857ed83",
+    "filename": "9991.png",
+    "created_at": "2026-05-23T20:10:22.880494",
+    "final_decision": {
+      "status": "no_evidence",
+      "title": "Sin evidencia detectable",
+      "summary": "No se encontró payload compatible con el formato StegoDetect y el puntaje ML de esteganografía fue bajo. Esto indica baja evidencia detectable dentro del alcance del modelo, pero no descarta técnicas externas, cifradas o no compatibles con el sistema.",
+      "evidence_source": "none",
+      "reliability": "high"
+    },
+    "ml_detection": {
+      "prediction": "cover",
+      "probability": 0.0,
+      "label": "Sin mensaje oculto",
+      "threshold": 0.0404,
+      "model_version": "srnet-lite-v1.0",
+      "mock_mode": false
+    },
+    "model_applicability": {
+      "domain_status": "in_domain",
+      "ml_score_reliability": "high",
+      "compatibility_score": 100,
+      "reasons": [
+        "Formato PNG sin compresión destructiva (compatible con entrenamiento).",
+        "Resolución 512×512 compatible con el rango de entrenamiento.",
+        "Saturación de color baja (Δ=0) — canales RGB similares, compatible con dominio BOSSBase."
+      ],
+      "image_format": "PNG",
+      "image_size": [
+        512,
+        512
+      ],
+      "image_mode": "RGB",
+      "color_saturation": 0.0
+    },
+    "reliability": {
+      "label": "Alta — baja evidencia de estego (dominio compatible)",
+      "level": "high",
+      "tooltip": "Imagen dentro del dominio de entrenamiento y puntaje claramente bajo. El modelo descarta esteganografía con confianza."
+    },
+    "lsb_analysis": {
+      "width": 512,
+      "height": 512,
+      "total_pixels": 262144,
+      "channel_stats": {
+        "R": {
+          "zeros": 133193,
+          "ones": 128951,
+          "total": 262144,
+          "ratio_ones": 0.4919,
+          "ratio_zeros": 0.5081,
+          "entropy": 0.9998
+        },
+        "G": {
+          "zeros": 133193,
+          "ones": 128951,
+          "total": 262144,
+          "ratio_ones": 0.4919,
+          "ratio_zeros": 0.5081,
+          "entropy": 0.9998
+        },
+        "B": {
+          "zeros": 133193,
+          "ones": 128951,
+          "total": 262144,
+          "ratio_ones": 0.4919,
+          "ratio_zeros": 0.5081,
+          "entropy": 0.9998
+        }
+      },
+      "has_system_header": false,
+      "capacity_estimate": {
+        "total_pixels": 262144,
+        "bytes_available": 98304,
+        "kb_available": 96.0
+      },
+      "randomness_note": "Distribución LSB cercana a 50/50 — posible contenido esteganografiado o ruido natural."
+    },
+    "payload_extraction": {
+      "payload_found": false,
+      "message": "No se encontró payload compatible con el formato LSB del sistema.",
+      "lsb_analysis": {
+        "width": 512,
+        "height": 512,
+        "total_pixels": 262144,
+        "channel_stats": {
+          "R": {
+            "zeros": 133193,
+            "ones": 128951,
+            "total": 262144,
+            "ratio_ones": 0.4919,
+            "ratio_zeros": 0.5081,
+            "entropy": 0.9998
+          },
+          "G": {
+            "zeros": 133193,
+            "ones": 128951,
+            "total": 262144,
+            "ratio_ones": 0.4919,
+            "ratio_zeros": 0.5081,
+            "entropy": 0.9998
+          },
+          "B": {
+            "zeros": 133193,
+            "ones": 128951,
+            "total": 262144,
+            "ratio_ones": 0.4919,
+            "ratio_zeros": 0.5081,
+            "entropy": 0.9998
+          }
+        },
+        "has_system_header": false,
+        "capacity_estimate": {
+          "total_pixels": 262144,
+          "bytes_available": 98304,
+          "kb_available": 96.0
+        },
+        "randomness_note": "Distribución LSB cercana a 50/50 — posible contenido esteganografiado o ruido natural."
+      },
+      "auto_extraction_attempts": [
+        {
+          "bits_per_channel": 1,
+          "payload_found": false,
+          "sha256_valid": false
+        },
+        {
+          "bits_per_channel": 2,
+          "payload_found": false,
+          "sha256_valid": false
+        },
+        {
+          "bits_per_channel": 3,
+          "payload_found": false,
+          "sha256_valid": false
+        },
+        {
+          "bits_per_channel": 4,
+          "payload_found": false,
+          "sha256_valid": false
+        }
+      ]
+    },
+    "capacity": {
+      "width": 512,
+      "height": 512,
+      "total_pixels": 262144,
+      "channels_used": [
+        "R",
+        "G",
+        "B"
+      ],
+      "bits_per_channel": 1,
+      "bits_available": 786432,
+      "bytes_available": 98304,
+      "header_overhead": 217,
+      "usable_bytes": 98087,
+      "usable_kb": 95.79,
+      "max_recommended_bytes": 98087
+    },
+    "technical_summary": "ML (srnet-lite-v1.0): COVER (0.0%) | Cabecera StegoDetect: no encontrada. | Distribución LSB cercana a 50/50 — posible contenido esteganografiado o ruido natural. | Payload: no encontrado o formato incompatible."
+  },
+  {
+    "id": "00a52a6c-bca5-45d2-b715-077f955cfd9d",
+    "filename": "9937.png",
+    "created_at": "2026-05-23T20:10:34.700751",
+    "final_decision": {
+      "status": "no_evidence",
+      "title": "Sin evidencia detectable",
+      "summary": "No se encontró payload compatible con el formato StegoDetect y el puntaje ML de esteganografía fue bajo. Esto indica baja evidencia detectable dentro del alcance del modelo, pero no descarta técnicas externas, cifradas o no compatibles con el sistema.",
+      "evidence_source": "none",
+      "reliability": "high"
+    },
+    "ml_detection": {
+      "prediction": "cover",
+      "probability": 0.0,
+      "label": "Sin mensaje oculto",
+      "threshold": 0.0404,
+      "model_version": "srnet-lite-v1.0",
+      "mock_mode": false
+    },
+    "model_applicability": {
+      "domain_status": "in_domain",
+      "ml_score_reliability": "high",
+      "compatibility_score": 100,
+      "reasons": [
+        "Formato PNG sin compresión destructiva (compatible con entrenamiento).",
+        "Resolución 512×512 compatible con el rango de entrenamiento.",
+        "Saturación de color baja (Δ=0) — canales RGB similares, compatible con dominio BOSSBase."
+      ],
+      "image_format": "PNG",
+      "image_size": [
+        512,
+        512
+      ],
+      "image_mode": "RGB",
+      "color_saturation": 0.0
+    },
+    "reliability": {
+      "label": "Alta — baja evidencia de estego (dominio compatible)",
+      "level": "high",
+      "tooltip": "Imagen dentro del dominio de entrenamiento y puntaje claramente bajo. El modelo descarta esteganografía con confianza."
+    },
+    "lsb_analysis": {
+      "width": 512,
+      "height": 512,
+      "total_pixels": 262144,
+      "channel_stats": {
+        "R": {
+          "zeros": 133444,
+          "ones": 128700,
+          "total": 262144,
+          "ratio_ones": 0.491,
+          "ratio_zeros": 0.509,
+          "entropy": 0.9998
+        },
+        "G": {
+          "zeros": 133444,
+          "ones": 128700,
+          "total": 262144,
+          "ratio_ones": 0.491,
+          "ratio_zeros": 0.509,
+          "entropy": 0.9998
+        },
+        "B": {
+          "zeros": 133444,
+          "ones": 128700,
+          "total": 262144,
+          "ratio_ones": 0.491,
+          "ratio_zeros": 0.509,
+          "entropy": 0.9998
+        }
+      },
+      "has_system_header": false,
+      "capacity_estimate": {
+        "total_pixels": 262144,
+        "bytes_available": 98304,
+        "kb_available": 96.0
+      },
+      "randomness_note": "Distribución LSB cercana a 50/50 — posible contenido esteganografiado o ruido natural."
+    },
+    "payload_extraction": {
+      "payload_found": false,
+      "message": "No se encontró payload compatible con el formato LSB del sistema.",
+      "lsb_analysis": {
+        "width": 512,
+        "height": 512,
+        "total_pixels": 262144,
+        "channel_stats": {
+          "R": {
+            "zeros": 133444,
+            "ones": 128700,
+            "total": 262144,
+            "ratio_ones": 0.491,
+            "ratio_zeros": 0.509,
+            "entropy": 0.9998
+          },
+          "G": {
+            "zeros": 133444,
+            "ones": 128700,
+            "total": 262144,
+            "ratio_ones": 0.491,
+            "ratio_zeros": 0.509,
+            "entropy": 0.9998
+          },
+          "B": {
+            "zeros": 133444,
+            "ones": 128700,
+            "total": 262144,
+            "ratio_ones": 0.491,
+            "ratio_zeros": 0.509,
+            "entropy": 0.9998
+          }
+        },
+        "has_system_header": false,
+        "capacity_estimate": {
+          "total_pixels": 262144,
+          "bytes_available": 98304,
+          "kb_available": 96.0
+        },
+        "randomness_note": "Distribución LSB cercana a 50/50 — posible contenido esteganografiado o ruido natural."
+      },
+      "auto_extraction_attempts": [
+        {
+          "bits_per_channel": 1,
+          "payload_found": false,
+          "sha256_valid": false
+        },
+        {
+          "bits_per_channel": 2,
+          "payload_found": false,
+          "sha256_valid": false
+        },
+        {
+          "bits_per_channel": 3,
+          "payload_found": false,
+          "sha256_valid": false
+        },
+        {
+          "bits_per_channel": 4,
+          "payload_found": false,
+          "sha256_valid": false
+        }
+      ]
+    },
+    "capacity": {
+      "width": 512,
+      "height": 512,
+      "total_pixels": 262144,
+      "channels_used": [
+        "R",
+        "G",
+        "B"
+      ],
+      "bits_per_channel": 1,
+      "bits_available": 786432,
+      "bytes_available": 98304,
+      "header_overhead": 217,
+      "usable_bytes": 98087,
+      "usable_kb": 95.79,
+      "max_recommended_bytes": 98087
+    },
+    "technical_summary": "ML (srnet-lite-v1.0): COVER (0.0%) | Cabecera StegoDetect: no encontrada. | Distribución LSB cercana a 50/50 — posible contenido esteganografiado o ruido natural. | Payload: no encontrado o formato incompatible."
+  },
+  {
+    "id": "2a027ecc-3efe-42c3-996d-39fd163625aa",
+    "filename": "stego_3684527e.png",
+    "created_at": "2026-05-23T20:10:41.019595",
+    "final_decision": {
+      "status": "payload_found",
+      "title": "Mensaje oculto encontrado",
+      "summary": "Se encontró y validó un payload mediante extracción LSB del sistema (cabecera STEGODETECTv1 detectada, SHA-256 verificado). Evidencia directa — no depende del modelo ML.",
+      "evidence_source": "lsb_extraction",
+      "reliability": "high"
+    },
+    "ml_detection": {
+      "prediction": "cover",
+      "probability": 0.0,
+      "label": "Sin mensaje oculto",
+      "threshold": 0.0404,
+      "model_version": "srnet-lite-v1.0",
+      "mock_mode": false
+    },
+    "model_applicability": {
+      "domain_status": "in_domain",
+      "ml_score_reliability": "high",
+      "compatibility_score": 100,
+      "reasons": [
+        "Formato PNG sin compresión destructiva (compatible con entrenamiento).",
+        "Resolución 512×512 compatible con el rango de entrenamiento.",
+        "Saturación de color baja (Δ=0) — canales RGB similares, compatible con dominio BOSSBase."
+      ],
+      "image_format": "PNG",
+      "image_size": [
+        512,
+        512
+      ],
+      "image_mode": "RGB",
+      "color_saturation": 0.03
+    },
+    "reliability": {
+      "label": "Alta — baja evidencia de estego (dominio compatible)",
+      "level": "high",
+      "tooltip": "Imagen dentro del dominio de entrenamiento y puntaje claramente bajo. El modelo descarta esteganografía con confianza."
+    },
+    "lsb_analysis": {
+      "width": 512,
+      "height": 512,
+      "total_pixels": 262144,
+      "channel_stats": {
+        "R": {
+          "zeros": 133898,
+          "ones": 128246,
+          "total": 262144,
+          "ratio_ones": 0.4892,
+          "ratio_zeros": 0.5108,
+          "entropy": 0.9997
+        },
+        "G": {
+          "zeros": 133920,
+          "ones": 128224,
+          "total": 262144,
+          "ratio_ones": 0.4891,
+          "ratio_zeros": 0.5109,
+          "entropy": 0.9997
+        },
+        "B": {
+          "zeros": 133960,
+          "ones": 128184,
+          "total": 262144,
+          "ratio_ones": 0.489,
+          "ratio_zeros": 0.511,
+          "entropy": 0.9996
+        }
+      },
+      "has_system_header": true,
+      "capacity_estimate": {
+        "total_pixels": 262144,
+        "bytes_available": 98304,
+        "kb_available": 96.0
+      },
+      "randomness_note": "Distribución LSB cercana a 50/50 — posible contenido esteganografiado o ruido natural."
+    },
+    "payload_extraction": {
+      "payload_found": true,
+      "payload_type": "pdf",
+      "filename": "reporte_27d98b1c.pdf",
+      "mime_type": "application/pdf",
+      "payload_size": 3133,
+      "sha256_header": "10625586914a62e518d1cfb95b0787b9221536088ddbdef4e37ddbeb70625208",
+      "sha256_actual": "10625586914a62e518d1cfb95b0787b9221536088ddbdef4e37ddbeb70625208",
+      "sha256_valid": true,
+      "algorithm": "LSB-1bit-RGB",
+      "bits_per_channel": 1,
+      "channels": [
+        "R",
+        "G",
+        "B"
+      ],
+      "created_by": "StegoDetect",
+      "lsb_analysis": {
+        "width": 512,
+        "height": 512,
+        "total_pixels": 262144,
+        "channel_stats": {
+          "R": {
+            "zeros": 133898,
+            "ones": 128246,
+            "total": 262144,
+            "ratio_ones": 0.4892,
+            "ratio_zeros": 0.5108,
+            "entropy": 0.9997
+          },
+          "G": {
+            "zeros": 133920,
+            "ones": 128224,
+            "total": 262144,
+            "ratio_ones": 0.4891,
+            "ratio_zeros": 0.5109,
+            "entropy": 0.9997
+          },
+          "B": {
+            "zeros": 133960,
+            "ones": 128184,
+            "total": 262144,
+            "ratio_ones": 0.489,
+            "ratio_zeros": 0.511,
+            "entropy": 0.9996
+          }
+        },
+        "has_system_header": true,
+        "capacity_estimate": {
+          "total_pixels": 262144,
+          "bytes_available": 98304,
+          "kb_available": 96.0
+        },
+        "randomness_note": "Distribución LSB cercana a 50/50 — posible contenido esteganografiado o ruido natural."
+      },
+      "positions_summary": {
+        "first_pixel": {
+          "x": 0,
+          "y": 0
+        },
+        "last_pixel": {
+          "x": 33,
+          "y": 0
+        },
+        "total_pixels_used": 9347,
+        "total_bits_used": 28040,
+        "channels_used": [
+          "R",
+          "G",
+          "B"
+        ]
+      },
+      "first_positions": [
+        {
+          "x": 0,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 0
+        },
+        {
+          "x": 0,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 1
+        },
+        {
+          "x": 0,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 2
+        },
+        {
+          "x": 1,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 3
+        },
+        {
+          "x": 1,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 4
+        },
+        {
+          "x": 1,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 5
+        },
+        {
+          "x": 2,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 6
+        },
+        {
+          "x": 2,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 7
+        },
+        {
+          "x": 2,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 8
+        },
+        {
+          "x": 3,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 9
+        },
+        {
+          "x": 3,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 10
+        },
+        {
+          "x": 3,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 11
+        },
+        {
+          "x": 4,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 12
+        },
+        {
+          "x": 4,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 13
+        },
+        {
+          "x": 4,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 14
+        },
+        {
+          "x": 5,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 15
+        },
+        {
+          "x": 5,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 16
+        },
+        {
+          "x": 5,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 17
+        },
+        {
+          "x": 6,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 18
+        },
+        {
+          "x": 6,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 19
+        },
+        {
+          "x": 6,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 20
+        },
+        {
+          "x": 7,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 21
+        },
+        {
+          "x": 7,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 22
+        },
+        {
+          "x": 7,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 23
+        },
+        {
+          "x": 8,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 24
+        },
+        {
+          "x": 8,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 25
+        },
+        {
+          "x": 8,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 26
+        },
+        {
+          "x": 9,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 27
+        },
+        {
+          "x": 9,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 28
+        },
+        {
+          "x": 9,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 29
+        },
+        {
+          "x": 10,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 30
+        },
+        {
+          "x": 10,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 31
+        },
+        {
+          "x": 10,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 32
+        },
+        {
+          "x": 11,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 33
+        },
+        {
+          "x": 11,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 34
+        },
+        {
+          "x": 11,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 35
+        },
+        {
+          "x": 12,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 36
+        },
+        {
+          "x": 12,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 37
+        },
+        {
+          "x": 12,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 38
+        },
+        {
+          "x": 13,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 39
+        },
+        {
+          "x": 13,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 40
+        },
+        {
+          "x": 13,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 41
+        },
+        {
+          "x": 14,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 42
+        },
+        {
+          "x": 14,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 43
+        },
+        {
+          "x": 14,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 44
+        },
+        {
+          "x": 15,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 45
+        },
+        {
+          "x": 15,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 46
+        },
+        {
+          "x": 15,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 47
+        },
+        {
+          "x": 16,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 48
+        },
+        {
+          "x": 16,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 49
+        },
+        {
+          "x": 16,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 50
+        },
+        {
+          "x": 17,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 51
+        },
+        {
+          "x": 17,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 52
+        },
+        {
+          "x": 17,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 53
+        },
+        {
+          "x": 18,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 54
+        },
+        {
+          "x": 18,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 55
+        },
+        {
+          "x": 18,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 56
+        },
+        {
+          "x": 19,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 57
+        },
+        {
+          "x": 19,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 58
+        },
+        {
+          "x": 19,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 59
+        },
+        {
+          "x": 20,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 60
+        },
+        {
+          "x": 20,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 61
+        },
+        {
+          "x": 20,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 62
+        },
+        {
+          "x": 21,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 63
+        },
+        {
+          "x": 21,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 64
+        },
+        {
+          "x": 21,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 65
+        },
+        {
+          "x": 22,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 66
+        },
+        {
+          "x": 22,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 67
+        },
+        {
+          "x": 22,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 68
+        },
+        {
+          "x": 23,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 69
+        },
+        {
+          "x": 23,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 70
+        },
+        {
+          "x": 23,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 71
+        },
+        {
+          "x": 24,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 72
+        },
+        {
+          "x": 24,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 73
+        },
+        {
+          "x": 24,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 74
+        },
+        {
+          "x": 25,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 75
+        },
+        {
+          "x": 25,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 76
+        },
+        {
+          "x": 25,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 77
+        },
+        {
+          "x": 26,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 78
+        },
+        {
+          "x": 26,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 79
+        },
+        {
+          "x": 26,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 80
+        },
+        {
+          "x": 27,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 81
+        },
+        {
+          "x": 27,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 82
+        },
+        {
+          "x": 27,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 83
+        },
+        {
+          "x": 28,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 84
+        },
+        {
+          "x": 28,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 85
+        },
+        {
+          "x": 28,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 86
+        },
+        {
+          "x": 29,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 87
+        },
+        {
+          "x": 29,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 88
+        },
+        {
+          "x": 29,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 89
+        },
+        {
+          "x": 30,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 90
+        },
+        {
+          "x": 30,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 91
+        },
+        {
+          "x": 30,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 92
+        },
+        {
+          "x": 31,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 93
+        },
+        {
+          "x": 31,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 94
+        },
+        {
+          "x": 31,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 95
+        },
+        {
+          "x": 32,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 96
+        },
+        {
+          "x": 32,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 97
+        },
+        {
+          "x": 32,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 98
+        },
+        {
+          "x": 33,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 99
+        }
+      ],
+      "extracted_filename": "extracted_d8c1fba7-e5cb-4afa-948a-529bcd1e4653.pdf",
+      "artifact_id": "d8c1fba7-e5cb-4afa-948a-529bcd1e4653",
+      "bits_per_channel_detected": 1,
+      "channels_detected": [
+        "R",
+        "G",
+        "B"
+      ],
+      "auto_extraction_attempts": [
+        {
+          "bits_per_channel": 1,
+          "payload_found": true,
+          "sha256_valid": true
+        }
+      ],
+      "download_payload_url": "/stego/download/d8c1fba7-e5cb-4afa-948a-529bcd1e4653/payload"
+    },
+    "capacity": {
+      "width": 512,
+      "height": 512,
+      "total_pixels": 262144,
+      "channels_used": [
+        "R",
+        "G",
+        "B"
+      ],
+      "bits_per_channel": 1,
+      "bits_available": 786432,
+      "bytes_available": 98304,
+      "header_overhead": 217,
+      "usable_bytes": 98087,
+      "usable_kb": 95.79,
+      "max_recommended_bytes": 98087
+    },
+    "technical_summary": "ML (srnet-lite-v1.0): COVER (0.0%) | Cabecera StegoDetect: detectada. | Distribución LSB cercana a 50/50 — posible contenido esteganografiado o ruido natural. | Payload extraído: tipo=pdf, 3133 bytes, SHA-256=OK."
+  },
+  {
+    "id": "951b8e05-0839-4e86-9bbf-b2ae098fcbcd",
+    "filename": "10000.png",
+    "created_at": "2026-05-23T20:11:34.256755",
+    "final_decision": {
+      "status": "ml_suspicious",
+      "title": "Posibles patrones compatibles con esteganografía",
+      "summary": "El modelo ML asignó un puntaje alto de esteganografía sobre una imagen compatible con su dominio de entrenamiento, pero no se encontró una cabecera StegoDetect. El contenido podría corresponder a otro algoritmo de esteganografía, una técnica con cifrado, o una imagen realmente esteganografiada. Se recomienda validación adicional.",
+      "evidence_source": "ml_detection",
+      "reliability": "medium"
+    },
+    "ml_detection": {
+      "prediction": "stego",
+      "probability": 1.0,
+      "label": "Con mensaje oculto",
+      "threshold": 0.0404,
+      "model_version": "srnet-lite-v1.0",
+      "mock_mode": false
+    },
+    "model_applicability": {
+      "domain_status": "in_domain",
+      "ml_score_reliability": "high",
+      "compatibility_score": 100,
+      "reasons": [
+        "Formato PNG sin compresión destructiva (compatible con entrenamiento).",
+        "Resolución 512×512 compatible con el rango de entrenamiento.",
+        "Saturación de color baja (Δ=0) — canales RGB similares, compatible con dominio BOSSBase."
+      ],
+      "image_format": "PNG",
+      "image_size": [
+        512,
+        512
+      ],
+      "image_mode": "RGB",
+      "color_saturation": 0.07
+    },
+    "reliability": {
+      "label": "Alta — posible estego (dominio compatible)",
+      "level": "high",
+      "tooltip": "Imagen dentro del dominio de entrenamiento y puntaje claramente alto. Patrón compatible con esteganografía LSB."
+    },
+    "lsb_analysis": {
+      "width": 512,
+      "height": 512,
+      "total_pixels": 262144,
+      "channel_stats": {
+        "R": {
+          "zeros": 131529,
+          "ones": 130615,
+          "total": 262144,
+          "ratio_ones": 0.4983,
+          "ratio_zeros": 0.5017,
+          "entropy": 1.0
+        },
+        "G": {
+          "zeros": 131551,
+          "ones": 130593,
+          "total": 262144,
+          "ratio_ones": 0.4982,
+          "ratio_zeros": 0.5018,
+          "entropy": 1.0
+        },
+        "B": {
+          "zeros": 131435,
+          "ones": 130709,
+          "total": 262144,
+          "ratio_ones": 0.4986,
+          "ratio_zeros": 0.5014,
+          "entropy": 1.0
+        }
+      },
+      "has_system_header": false,
+      "capacity_estimate": {
+        "total_pixels": 262144,
+        "bytes_available": 98304,
+        "kb_available": 96.0
+      },
+      "randomness_note": "Distribución LSB cercana a 50/50 — posible contenido esteganografiado o ruido natural."
+    },
+    "payload_extraction": {
+      "payload_found": false,
+      "message": "No se encontró payload compatible con el formato LSB del sistema.",
+      "lsb_analysis": {
+        "width": 512,
+        "height": 512,
+        "total_pixels": 262144,
+        "channel_stats": {
+          "R": {
+            "zeros": 131529,
+            "ones": 130615,
+            "total": 262144,
+            "ratio_ones": 0.4983,
+            "ratio_zeros": 0.5017,
+            "entropy": 1.0
+          },
+          "G": {
+            "zeros": 131551,
+            "ones": 130593,
+            "total": 262144,
+            "ratio_ones": 0.4982,
+            "ratio_zeros": 0.5018,
+            "entropy": 1.0
+          },
+          "B": {
+            "zeros": 131435,
+            "ones": 130709,
+            "total": 262144,
+            "ratio_ones": 0.4986,
+            "ratio_zeros": 0.5014,
+            "entropy": 1.0
+          }
+        },
+        "has_system_header": false,
+        "capacity_estimate": {
+          "total_pixels": 262144,
+          "bytes_available": 98304,
+          "kb_available": 96.0
+        },
+        "randomness_note": "Distribución LSB cercana a 50/50 — posible contenido esteganografiado o ruido natural."
+      },
+      "auto_extraction_attempts": [
+        {
+          "bits_per_channel": 1,
+          "payload_found": false,
+          "sha256_valid": false
+        },
+        {
+          "bits_per_channel": 2,
+          "payload_found": false,
+          "sha256_valid": false
+        },
+        {
+          "bits_per_channel": 3,
+          "payload_found": false,
+          "sha256_valid": false
+        },
+        {
+          "bits_per_channel": 4,
+          "payload_found": false,
+          "sha256_valid": false
+        }
+      ]
+    },
+    "capacity": {
+      "width": 512,
+      "height": 512,
+      "total_pixels": 262144,
+      "channels_used": [
+        "R",
+        "G",
+        "B"
+      ],
+      "bits_per_channel": 1,
+      "bits_available": 786432,
+      "bytes_available": 98304,
+      "header_overhead": 217,
+      "usable_bytes": 98087,
+      "usable_kb": 95.79,
+      "max_recommended_bytes": 98087
+    },
+    "technical_summary": "ML (srnet-lite-v1.0): STEGO (100.0%) | Cabecera StegoDetect: no encontrada. | Distribución LSB cercana a 50/50 — posible contenido esteganografiado o ruido natural. | Payload: no encontrado o formato incompatible."
+  },
+  {
+    "id": "2e325ca6-804e-4334-80fc-c8da05903fd3",
+    "filename": "3687.png",
+    "created_at": "2026-05-23T21:04:46.918724",
+    "final_decision": {
+      "status": "no_evidence",
+      "title": "Sin evidencia detectable",
+      "summary": "No se encontró payload compatible con el formato StegoDetect y el puntaje ML de esteganografía fue bajo. Esto indica baja evidencia detectable dentro del alcance del modelo, pero no descarta técnicas externas, cifradas o no compatibles con el sistema.",
+      "evidence_source": "none",
+      "reliability": "high"
+    },
+    "ml_detection": {
+      "prediction": "cover",
+      "probability": 0.0,
+      "label": "Sin mensaje oculto",
+      "threshold": 0.0404,
+      "model_version": "srnet-lite-v1.0",
+      "mock_mode": false
+    },
+    "model_applicability": {
+      "domain_status": "in_domain",
+      "ml_score_reliability": "high",
+      "compatibility_score": 100,
+      "reasons": [
+        "Formato PNG sin compresión destructiva (compatible con entrenamiento).",
+        "Resolución 512×512 compatible con el rango de entrenamiento.",
+        "Saturación de color baja (Δ=0) — canales RGB similares, compatible con dominio BOSSBase."
+      ],
+      "image_format": "PNG",
+      "image_size": [
+        512,
+        512
+      ],
+      "image_mode": "RGB",
+      "color_saturation": 0.0
+    },
+    "reliability": {
+      "label": "Alta — baja evidencia de estego (dominio compatible)",
+      "level": "high",
+      "tooltip": "Imagen dentro del dominio de entrenamiento y puntaje claramente bajo. El modelo descarta esteganografía con confianza."
+    },
+    "lsb_analysis": {
+      "width": 512,
+      "height": 512,
+      "total_pixels": 262144,
+      "channel_stats": {
+        "R": {
+          "zeros": 130902,
+          "ones": 131242,
+          "total": 262144,
+          "ratio_ones": 0.5006,
+          "ratio_zeros": 0.4994,
+          "entropy": 1.0
+        },
+        "G": {
+          "zeros": 130902,
+          "ones": 131242,
+          "total": 262144,
+          "ratio_ones": 0.5006,
+          "ratio_zeros": 0.4994,
+          "entropy": 1.0
+        },
+        "B": {
+          "zeros": 130902,
+          "ones": 131242,
+          "total": 262144,
+          "ratio_ones": 0.5006,
+          "ratio_zeros": 0.4994,
+          "entropy": 1.0
+        }
+      },
+      "has_system_header": false,
+      "capacity_estimate": {
+        "total_pixels": 262144,
+        "bytes_available": 98304,
+        "kb_available": 96.0
+      },
+      "randomness_note": "Distribución LSB cercana a 50/50 — posible contenido esteganografiado o ruido natural."
+    },
+    "payload_extraction": {
+      "payload_found": false,
+      "message": "No se encontró payload compatible con el formato LSB del sistema.",
+      "lsb_analysis": {
+        "width": 512,
+        "height": 512,
+        "total_pixels": 262144,
+        "channel_stats": {
+          "R": {
+            "zeros": 130902,
+            "ones": 131242,
+            "total": 262144,
+            "ratio_ones": 0.5006,
+            "ratio_zeros": 0.4994,
+            "entropy": 1.0
+          },
+          "G": {
+            "zeros": 130902,
+            "ones": 131242,
+            "total": 262144,
+            "ratio_ones": 0.5006,
+            "ratio_zeros": 0.4994,
+            "entropy": 1.0
+          },
+          "B": {
+            "zeros": 130902,
+            "ones": 131242,
+            "total": 262144,
+            "ratio_ones": 0.5006,
+            "ratio_zeros": 0.4994,
+            "entropy": 1.0
+          }
+        },
+        "has_system_header": false,
+        "capacity_estimate": {
+          "total_pixels": 262144,
+          "bytes_available": 98304,
+          "kb_available": 96.0
+        },
+        "randomness_note": "Distribución LSB cercana a 50/50 — posible contenido esteganografiado o ruido natural."
+      },
+      "auto_extraction_attempts": [
+        {
+          "bits_per_channel": 1,
+          "payload_found": false,
+          "sha256_valid": false
+        },
+        {
+          "bits_per_channel": 2,
+          "payload_found": false,
+          "sha256_valid": false
+        },
+        {
+          "bits_per_channel": 3,
+          "payload_found": false,
+          "sha256_valid": false
+        },
+        {
+          "bits_per_channel": 4,
+          "payload_found": false,
+          "sha256_valid": false
+        }
+      ]
+    },
+    "capacity": {
+      "width": 512,
+      "height": 512,
+      "total_pixels": 262144,
+      "channels_used": [
+        "R",
+        "G",
+        "B"
+      ],
+      "bits_per_channel": 1,
+      "bits_available": 786432,
+      "bytes_available": 98304,
+      "header_overhead": 217,
+      "usable_bytes": 98087,
+      "usable_kb": 95.79,
+      "max_recommended_bytes": 98087
+    },
+    "technical_summary": "ML (srnet-lite-v1.0): COVER (0.0%) | Cabecera StegoDetect: no encontrada. | Distribución LSB cercana a 50/50 — posible contenido esteganografiado o ruido natural. | Payload: no encontrado o formato incompatible."
+  },
+  {
+    "id": "881d5a7c-7514-4628-a2e2-76b8c61aaaa4",
+    "filename": "lsb_map_f02dea16.png",
+    "created_at": "2026-05-23T22:19:50.842205",
+    "final_decision": {
+      "status": "no_evidence",
+      "title": "Sin evidencia detectable",
+      "summary": "No se encontró payload compatible con el formato StegoDetect y el puntaje ML de esteganografía fue bajo. Esto indica baja evidencia detectable dentro del alcance del modelo, pero no descarta técnicas externas, cifradas o no compatibles con el sistema.",
+      "evidence_source": "none",
+      "reliability": "medium"
+    },
+    "ml_detection": {
+      "prediction": "cover",
+      "probability": 0.0,
+      "label": "Sin mensaje oculto",
+      "threshold": 0.0404,
+      "model_version": "srnet-lite-v1.0",
+      "mock_mode": false
+    },
+    "model_applicability": {
+      "domain_status": "possibly_out_of_domain",
+      "ml_score_reliability": "medium",
+      "compatibility_score": 40,
+      "reasons": [
+        "Formato PNG sin compresión destructiva (compatible con entrenamiento).",
+        "Resolución 3840×2400 muy superior al rango de entrenamiento (256–1024 px por lado). Tamaño típico de wallpaper/foto profesional — no representado en entrenamiento.",
+        "Relación de aspecto 1.60:1 — el entrenamiento usó imágenes cuadradas (1:1). Formatos panorámicos no están representados.",
+        "Saturación de color baja (Δ=0) — canales RGB similares, compatible con dominio BOSSBase."
+      ],
+      "image_format": "PNG",
+      "image_size": [
+        3840,
+        2400
+      ],
+      "image_mode": "RGB",
+      "color_saturation": 0.1
+    },
+    "reliability": {
+      "label": "Media — imagen parcialmente compatible",
+      "level": "medium",
+      "tooltip": "La imagen comparte algunas características con el dominio de entrenamiento, pero no todas. Resultado orientativo."
+    },
+    "lsb_analysis": {
+      "width": 3840,
+      "height": 2400,
+      "total_pixels": 9216000,
+      "channel_stats": {
+        "R": {
+          "zeros": 4616489,
+          "ones": 4599511,
+          "total": 9216000,
+          "ratio_ones": 0.4991,
+          "ratio_zeros": 0.5009,
+          "entropy": 1.0
+        },
+        "G": {
+          "zeros": 4616489,
+          "ones": 4599511,
+          "total": 9216000,
+          "ratio_ones": 0.4991,
+          "ratio_zeros": 0.5009,
+          "entropy": 1.0
+        },
+        "B": {
+          "zeros": 4616489,
+          "ones": 4599511,
+          "total": 9216000,
+          "ratio_ones": 0.4991,
+          "ratio_zeros": 0.5009,
+          "entropy": 1.0
+        }
+      },
+      "has_system_header": false,
+      "capacity_estimate": {
+        "total_pixels": 9216000,
+        "bytes_available": 3456000,
+        "kb_available": 3375.0
+      },
+      "randomness_note": "Distribución LSB cercana a 50/50 — posible contenido esteganografiado o ruido natural."
+    },
+    "payload_extraction": {
+      "payload_found": false,
+      "message": "No se encontró payload compatible con el formato LSB del sistema.",
+      "lsb_analysis": {
+        "width": 3840,
+        "height": 2400,
+        "total_pixels": 9216000,
+        "channel_stats": {
+          "R": {
+            "zeros": 4616489,
+            "ones": 4599511,
+            "total": 9216000,
+            "ratio_ones": 0.4991,
+            "ratio_zeros": 0.5009,
+            "entropy": 1.0
+          },
+          "G": {
+            "zeros": 4616489,
+            "ones": 4599511,
+            "total": 9216000,
+            "ratio_ones": 0.4991,
+            "ratio_zeros": 0.5009,
+            "entropy": 1.0
+          },
+          "B": {
+            "zeros": 4616489,
+            "ones": 4599511,
+            "total": 9216000,
+            "ratio_ones": 0.4991,
+            "ratio_zeros": 0.5009,
+            "entropy": 1.0
+          }
+        },
+        "has_system_header": false,
+        "capacity_estimate": {
+          "total_pixels": 9216000,
+          "bytes_available": 3456000,
+          "kb_available": 3375.0
+        },
+        "randomness_note": "Distribución LSB cercana a 50/50 — posible contenido esteganografiado o ruido natural."
+      },
+      "auto_extraction_attempts": [
+        {
+          "bits_per_channel": 1,
+          "payload_found": false,
+          "sha256_valid": false
+        },
+        {
+          "bits_per_channel": 2,
+          "payload_found": false,
+          "sha256_valid": false
+        },
+        {
+          "bits_per_channel": 3,
+          "payload_found": false,
+          "sha256_valid": false
+        },
+        {
+          "bits_per_channel": 4,
+          "payload_found": false,
+          "sha256_valid": false
+        }
+      ]
+    },
+    "capacity": {
+      "width": 3840,
+      "height": 2400,
+      "total_pixels": 9216000,
+      "channels_used": [
+        "R",
+        "G",
+        "B"
+      ],
+      "bits_per_channel": 1,
+      "bits_available": 27648000,
+      "bytes_available": 3456000,
+      "header_overhead": 217,
+      "usable_bytes": 3455783,
+      "usable_kb": 3374.79,
+      "max_recommended_bytes": 3455783
+    },
+    "technical_summary": "ML (srnet-lite-v1.0): COVER (0.0%) | Cabecera StegoDetect: no encontrada. | Distribución LSB cercana a 50/50 — posible contenido esteganografiado o ruido natural. | Payload: no encontrado o formato incompatible."
+  },
+  {
+    "id": "40d322ef-0f5f-41e1-a74b-31d84652f009",
+    "filename": "stego_f02dea16.png",
+    "created_at": "2026-05-23T22:20:03.678996",
+    "final_decision": {
+      "status": "payload_found",
+      "title": "Mensaje oculto encontrado",
+      "summary": "Se encontró y validó un payload mediante extracción LSB del sistema (cabecera STEGODETECTv1 detectada, SHA-256 verificado). Evidencia directa — no depende del modelo ML.",
+      "evidence_source": "lsb_extraction",
+      "reliability": "high"
+    },
+    "ml_detection": {
+      "prediction": "stego",
+      "probability": 1.0,
+      "label": "Con mensaje oculto",
+      "threshold": 0.0404,
+      "model_version": "srnet-lite-v1.0",
+      "mock_mode": false
+    },
+    "model_applicability": {
+      "domain_status": "possibly_out_of_domain",
+      "ml_score_reliability": "medium",
+      "compatibility_score": 40,
+      "reasons": [
+        "Formato PNG sin compresión destructiva (compatible con entrenamiento).",
+        "Resolución 3840×2400 muy superior al rango de entrenamiento (256–1024 px por lado). Tamaño típico de wallpaper/foto profesional — no representado en entrenamiento.",
+        "Relación de aspecto 1.60:1 — el entrenamiento usó imágenes cuadradas (1:1). Formatos panorámicos no están representados.",
+        "Saturación de color baja (Δ=55) — canales RGB similares, compatible con dominio BOSSBase."
+      ],
+      "image_format": "PNG",
+      "image_size": [
+        3840,
+        2400
+      ],
+      "image_mode": "RGB",
+      "color_saturation": 54.63
+    },
+    "reliability": {
+      "label": "Media — imagen parcialmente compatible",
+      "level": "medium",
+      "tooltip": "La imagen comparte algunas características con el dominio de entrenamiento, pero no todas. Resultado orientativo."
+    },
+    "lsb_analysis": {
+      "width": 3840,
+      "height": 2400,
+      "total_pixels": 9216000,
+      "channel_stats": {
+        "R": {
+          "zeros": 4676179,
+          "ones": 4539821,
+          "total": 9216000,
+          "ratio_ones": 0.4926,
+          "ratio_zeros": 0.5074,
+          "entropy": 0.9998
+        },
+        "G": {
+          "zeros": 4942870,
+          "ones": 4273130,
+          "total": 9216000,
+          "ratio_ones": 0.4637,
+          "ratio_zeros": 0.5363,
+          "entropy": 0.9962
+        },
+        "B": {
+          "zeros": 4712890,
+          "ones": 4503110,
+          "total": 9216000,
+          "ratio_ones": 0.4886,
+          "ratio_zeros": 0.5114,
+          "entropy": 0.9996
+        }
+      },
+      "has_system_header": false,
+      "capacity_estimate": {
+        "total_pixels": 9216000,
+        "bytes_available": 3456000,
+        "kb_available": 3375.0
+      },
+      "randomness_note": "Distribución LSB cercana a 50/50 — posible contenido esteganografiado o ruido natural."
+    },
+    "payload_extraction": {
+      "payload_found": true,
+      "payload_type": "pdf",
+      "filename": "stego_report_3698_(1).png_26a13956.pdf",
+      "mime_type": "application/pdf",
+      "payload_size": 3619,
+      "sha256_header": "4798ce586bd8dd30d836bca32a2e871ff38aba1b8f8ff12b83195dd6ebcccdb1",
+      "sha256_actual": "4798ce586bd8dd30d836bca32a2e871ff38aba1b8f8ff12b83195dd6ebcccdb1",
+      "sha256_valid": true,
+      "algorithm": "LSB-2bit-RGB",
+      "bits_per_channel": 2,
+      "channels": [
+        "R",
+        "G",
+        "B"
+      ],
+      "created_by": "StegoDetect",
+      "lsb_analysis": {
+        "width": 3840,
+        "height": 2400,
+        "total_pixels": 9216000,
+        "channel_stats": {
+          "R": {
+            "zeros": 4676179,
+            "ones": 4539821,
+            "total": 9216000,
+            "ratio_ones": 0.4926,
+            "ratio_zeros": 0.5074,
+            "entropy": 0.9998
+          },
+          "G": {
+            "zeros": 4942870,
+            "ones": 4273130,
+            "total": 9216000,
+            "ratio_ones": 0.4637,
+            "ratio_zeros": 0.5363,
+            "entropy": 0.9962
+          },
+          "B": {
+            "zeros": 4712890,
+            "ones": 4503110,
+            "total": 9216000,
+            "ratio_ones": 0.4886,
+            "ratio_zeros": 0.5114,
+            "entropy": 0.9996
+          }
+        },
+        "has_system_header": false,
+        "capacity_estimate": {
+          "total_pixels": 9216000,
+          "bytes_available": 3456000,
+          "kb_available": 3375.0
+        },
+        "randomness_note": "Distribución LSB cercana a 50/50 — posible contenido esteganografiado o ruido natural."
+      },
+      "positions_summary": {
+        "first_pixel": {
+          "x": 0,
+          "y": 0
+        },
+        "last_pixel": {
+          "x": 16,
+          "y": 0
+        },
+        "total_pixels_used": 5346,
+        "total_bits_used": 32072,
+        "channels_used": [
+          "R",
+          "G",
+          "B"
+        ]
+      },
+      "first_positions": [
+        {
+          "x": 0,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 0
+        },
+        {
+          "x": 0,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 1
+        },
+        {
+          "x": 0,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 2
+        },
+        {
+          "x": 0,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 3
+        },
+        {
+          "x": 0,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 4
+        },
+        {
+          "x": 0,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 5
+        },
+        {
+          "x": 1,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 6
+        },
+        {
+          "x": 1,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 7
+        },
+        {
+          "x": 1,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 8
+        },
+        {
+          "x": 1,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 9
+        },
+        {
+          "x": 1,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 10
+        },
+        {
+          "x": 1,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 11
+        },
+        {
+          "x": 2,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 12
+        },
+        {
+          "x": 2,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 13
+        },
+        {
+          "x": 2,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 14
+        },
+        {
+          "x": 2,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 15
+        },
+        {
+          "x": 2,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 16
+        },
+        {
+          "x": 2,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 17
+        },
+        {
+          "x": 3,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 18
+        },
+        {
+          "x": 3,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 19
+        },
+        {
+          "x": 3,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 20
+        },
+        {
+          "x": 3,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 21
+        },
+        {
+          "x": 3,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 22
+        },
+        {
+          "x": 3,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 23
+        },
+        {
+          "x": 4,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 24
+        },
+        {
+          "x": 4,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 25
+        },
+        {
+          "x": 4,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 26
+        },
+        {
+          "x": 4,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 27
+        },
+        {
+          "x": 4,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 28
+        },
+        {
+          "x": 4,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 29
+        },
+        {
+          "x": 5,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 30
+        },
+        {
+          "x": 5,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 31
+        },
+        {
+          "x": 5,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 32
+        },
+        {
+          "x": 5,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 33
+        },
+        {
+          "x": 5,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 34
+        },
+        {
+          "x": 5,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 35
+        },
+        {
+          "x": 6,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 36
+        },
+        {
+          "x": 6,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 37
+        },
+        {
+          "x": 6,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 38
+        },
+        {
+          "x": 6,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 39
+        },
+        {
+          "x": 6,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 40
+        },
+        {
+          "x": 6,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 41
+        },
+        {
+          "x": 7,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 42
+        },
+        {
+          "x": 7,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 43
+        },
+        {
+          "x": 7,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 44
+        },
+        {
+          "x": 7,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 45
+        },
+        {
+          "x": 7,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 46
+        },
+        {
+          "x": 7,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 47
+        },
+        {
+          "x": 8,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 48
+        },
+        {
+          "x": 8,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 49
+        },
+        {
+          "x": 8,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 50
+        },
+        {
+          "x": 8,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 51
+        },
+        {
+          "x": 8,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 52
+        },
+        {
+          "x": 8,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 53
+        },
+        {
+          "x": 9,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 54
+        },
+        {
+          "x": 9,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 55
+        },
+        {
+          "x": 9,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 56
+        },
+        {
+          "x": 9,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 57
+        },
+        {
+          "x": 9,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 58
+        },
+        {
+          "x": 9,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 59
+        },
+        {
+          "x": 10,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 60
+        },
+        {
+          "x": 10,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 61
+        },
+        {
+          "x": 10,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 62
+        },
+        {
+          "x": 10,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 63
+        },
+        {
+          "x": 10,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 64
+        },
+        {
+          "x": 10,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 65
+        },
+        {
+          "x": 11,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 66
+        },
+        {
+          "x": 11,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 67
+        },
+        {
+          "x": 11,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 68
+        },
+        {
+          "x": 11,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 69
+        },
+        {
+          "x": 11,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 70
+        },
+        {
+          "x": 11,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 71
+        },
+        {
+          "x": 12,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 72
+        },
+        {
+          "x": 12,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 73
+        },
+        {
+          "x": 12,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 74
+        },
+        {
+          "x": 12,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 75
+        },
+        {
+          "x": 12,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 76
+        },
+        {
+          "x": 12,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 77
+        },
+        {
+          "x": 13,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 78
+        },
+        {
+          "x": 13,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 79
+        },
+        {
+          "x": 13,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 80
+        },
+        {
+          "x": 13,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 81
+        },
+        {
+          "x": 13,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 82
+        },
+        {
+          "x": 13,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 83
+        },
+        {
+          "x": 14,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 84
+        },
+        {
+          "x": 14,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 85
+        },
+        {
+          "x": 14,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 86
+        },
+        {
+          "x": 14,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 87
+        },
+        {
+          "x": 14,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 88
+        },
+        {
+          "x": 14,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 89
+        },
+        {
+          "x": 15,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 90
+        },
+        {
+          "x": 15,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 91
+        },
+        {
+          "x": 15,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 92
+        },
+        {
+          "x": 15,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 93
+        },
+        {
+          "x": 15,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 94
+        },
+        {
+          "x": 15,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 95
+        },
+        {
+          "x": 16,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 96
+        },
+        {
+          "x": 16,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 97
+        },
+        {
+          "x": 16,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 98
+        },
+        {
+          "x": 16,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 99
+        }
+      ],
+      "extracted_filename": "extracted_7105f0ae-a73c-4ea1-940a-596c1023b67d.pdf",
+      "artifact_id": "7105f0ae-a73c-4ea1-940a-596c1023b67d",
+      "bits_per_channel_detected": 2,
+      "channels_detected": [
+        "R",
+        "G",
+        "B"
+      ],
+      "auto_extraction_attempts": [
+        {
+          "bits_per_channel": 1,
+          "payload_found": false,
+          "sha256_valid": false
+        },
+        {
+          "bits_per_channel": 2,
+          "payload_found": true,
+          "sha256_valid": true
+        }
+      ],
+      "download_payload_url": "/stego/download/7105f0ae-a73c-4ea1-940a-596c1023b67d/payload"
+    },
+    "capacity": {
+      "width": 3840,
+      "height": 2400,
+      "total_pixels": 9216000,
+      "channels_used": [
+        "R",
+        "G",
+        "B"
+      ],
+      "bits_per_channel": 1,
+      "bits_available": 27648000,
+      "bytes_available": 3456000,
+      "header_overhead": 217,
+      "usable_bytes": 3455783,
+      "usable_kb": 3374.79,
+      "max_recommended_bytes": 3455783
+    },
+    "technical_summary": "ML (srnet-lite-v1.0): STEGO (100.0%) | Cabecera StegoDetect: no encontrada. | Distribución LSB cercana a 50/50 — posible contenido esteganografiado o ruido natural. | Payload extraído: tipo=pdf, 3619 bytes, SHA-256=OK."
+  },
+  {
+    "id": "e1ee6765-f552-4a0d-adac-39afb0cb8587",
+    "filename": "Nitro_Wallpaper_01_3840x2400.jpg",
+    "created_at": "2026-05-23T22:47:34.951687",
+    "final_decision": {
+      "status": "ml_suspicious_unverified",
+      "title": "Resultado ML no concluyente en imagen externa",
+      "summary": "El modelo asignó un puntaje alto, pero la imagen está fuera del dominio de entrenamiento (BOSSBase PNG, ~512×512, baja saturación). El puntaje sobre imágenes externas, JPG o de alta resolución no es una probabilidad calibrada y NO debe interpretarse como detección concluyente. Se recomienda validación adicional o análisis sobre una versión PNG sin compresión destructiva.",
+      "evidence_source": "ml_detection_out_of_domain",
+      "reliability": "low"
+    },
+    "ml_detection": {
+      "prediction": "stego",
+      "probability": 1.0,
+      "label": "Con mensaje oculto",
+      "threshold": 0.0404,
+      "model_version": "srnet-lite-v1.0",
+      "mock_mode": false
+    },
+    "model_applicability": {
+      "domain_status": "out_of_domain",
+      "ml_score_reliability": "low",
+      "compatibility_score": 0,
+      "reasons": [
+        "Formato JPG/JPEG con compresión con pérdida — los LSB originales pueden haberse destruido o alterado por el codec JPEG. El modelo fue entrenado solo con PNG sin compresión destructiva.",
+        "Resolución 3840×2400 muy superior al rango de entrenamiento (256–1024 px por lado). Tamaño típico de wallpaper/foto profesional — no representado en entrenamiento.",
+        "Relación de aspecto 1.60:1 — el entrenamiento usó imágenes cuadradas (1:1). Formatos panorámicos no están representados.",
+        "Saturación de color baja (Δ=55) — canales RGB similares, compatible con dominio BOSSBase."
+      ],
+      "image_format": "JPEG",
+      "image_size": [
+        3840,
+        2400
+      ],
+      "image_mode": "RGB",
+      "color_saturation": 54.63
+    },
+    "reliability": {
+      "label": "Baja — imagen fuera del dominio del modelo",
+      "level": "low",
+      "tooltip": "El modelo no fue entrenado con imágenes de este tipo (formato, resolución o saturación incompatibles). El puntaje no debe interpretarse como probabilidad calibrada."
+    },
+    "lsb_analysis": {
+      "width": 3840,
+      "height": 2400,
+      "total_pixels": 9216000,
+      "channel_stats": {
+        "R": {
+          "zeros": 4675527,
+          "ones": 4540473,
+          "total": 9216000,
+          "ratio_ones": 0.4927,
+          "ratio_zeros": 0.5073,
+          "entropy": 0.9998
+        },
+        "G": {
+          "zeros": 4942559,
+          "ones": 4273441,
+          "total": 9216000,
+          "ratio_ones": 0.4637,
+          "ratio_zeros": 0.5363,
+          "entropy": 0.9962
+        },
+        "B": {
+          "zeros": 4712453,
+          "ones": 4503547,
+          "total": 9216000,
+          "ratio_ones": 0.4887,
+          "ratio_zeros": 0.5113,
+          "entropy": 0.9996
+        }
+      },
+      "has_system_header": false,
+      "capacity_estimate": {
+        "total_pixels": 9216000,
+        "bytes_available": 3456000,
+        "kb_available": 3375.0
+      },
+      "randomness_note": "Distribución LSB cercana a 50/50 — posible contenido esteganografiado o ruido natural."
+    },
+    "payload_extraction": {
+      "payload_found": false,
+      "message": "No se encontró payload compatible con el formato LSB del sistema.",
+      "lsb_analysis": {
+        "width": 3840,
+        "height": 2400,
+        "total_pixels": 9216000,
+        "channel_stats": {
+          "R": {
+            "zeros": 4675527,
+            "ones": 4540473,
+            "total": 9216000,
+            "ratio_ones": 0.4927,
+            "ratio_zeros": 0.5073,
+            "entropy": 0.9998
+          },
+          "G": {
+            "zeros": 4942559,
+            "ones": 4273441,
+            "total": 9216000,
+            "ratio_ones": 0.4637,
+            "ratio_zeros": 0.5363,
+            "entropy": 0.9962
+          },
+          "B": {
+            "zeros": 4712453,
+            "ones": 4503547,
+            "total": 9216000,
+            "ratio_ones": 0.4887,
+            "ratio_zeros": 0.5113,
+            "entropy": 0.9996
+          }
+        },
+        "has_system_header": false,
+        "capacity_estimate": {
+          "total_pixels": 9216000,
+          "bytes_available": 3456000,
+          "kb_available": 3375.0
+        },
+        "randomness_note": "Distribución LSB cercana a 50/50 — posible contenido esteganografiado o ruido natural."
+      },
+      "auto_extraction_attempts": [
+        {
+          "bits_per_channel": 1,
+          "payload_found": false,
+          "sha256_valid": false
+        },
+        {
+          "bits_per_channel": 2,
+          "payload_found": false,
+          "sha256_valid": false
+        },
+        {
+          "bits_per_channel": 3,
+          "payload_found": false,
+          "sha256_valid": false
+        },
+        {
+          "bits_per_channel": 4,
+          "payload_found": false,
+          "sha256_valid": false
+        }
+      ]
+    },
+    "capacity": {
+      "width": 3840,
+      "height": 2400,
+      "total_pixels": 9216000,
+      "channels_used": [
+        "R",
+        "G",
+        "B"
+      ],
+      "bits_per_channel": 1,
+      "bits_available": 27648000,
+      "bytes_available": 3456000,
+      "header_overhead": 217,
+      "usable_bytes": 3455783,
+      "usable_kb": 3374.79,
+      "max_recommended_bytes": 3455783
+    },
+    "technical_summary": "ML (srnet-lite-v1.0): STEGO (100.0%) | Cabecera StegoDetect: no encontrada. | Distribución LSB cercana a 50/50 — posible contenido esteganografiado o ruido natural. | Payload: no encontrado o formato incompatible."
+  },
+  {
+    "id": "97497df7-ae1d-4c02-9840-174d8ad11537",
+    "filename": "stg_test.png",
+    "created_at": "2026-06-15T15:17:39.064380",
+    "final_decision": {
+      "status": "no_evidence",
+      "title": "Sin evidencia detectable",
+      "summary": "No se encontró payload compatible con el formato StegoDetect y el puntaje ML de esteganografía fue bajo. Esto indica baja evidencia detectable dentro del alcance del modelo, pero no descarta técnicas externas, cifradas o no compatibles con el sistema.",
+      "evidence_source": "none",
+      "reliability": "medium"
+    },
+    "ml_detection": {
+      "error": "Error preprocesando la imagen: cannot identify image file '/home/runner/workspace/artifacts/stegano-app/backend/storage/uploads/dd74934f-a544-4436-9f91-411b6300186f_stg_test.png'"
+    },
+    "model_applicability": {
+      "domain_status": "out_of_domain",
+      "ml_score_reliability": "low",
+      "compatibility_score": 0,
+      "reasons": [
+        "No se pudo abrir la imagen: cannot identify image file '/home/runner/workspace/artifacts/stegano-app/backend/storage/uploads/dd74934f-a544-4436-9f91-411b6300186f_stg_test.png'"
+      ],
+      "image_format": "unknown",
+      "image_size": [
+        0,
+        0
+      ],
+      "image_mode": "unknown",
+      "color_saturation": 0.0
+    },
+    "reliability": {
+      "label": "Baja — imagen fuera del dominio del modelo",
+      "level": "low",
+      "tooltip": "El modelo no fue entrenado con imágenes de este tipo (formato, resolución o saturación incompatibles). El puntaje no debe interpretarse como probabilidad calibrada."
+    },
+    "lsb_analysis": {
+      "error": "cannot identify image file '/home/runner/workspace/artifacts/stegano-app/backend/storage/uploads/dd74934f-a544-4436-9f91-411b6300186f_stg_test.png'"
+    },
+    "payload_extraction": {
+      "payload_found": false,
+      "message": "No se encontró payload con ninguna configuración probada.",
+      "auto_extraction_attempts": [
+        {
+          "bits_per_channel": 1,
+          "error": "cannot identify image file '/home/runner/workspace/artifacts/stegano-app/backend/storage/uploads/dd74934f-a544-4436-9f91-411b6300186f_stg_test.png'"
+        },
+        {
+          "bits_per_channel": 2,
+          "error": "cannot identify image file '/home/runner/workspace/artifacts/stegano-app/backend/storage/uploads/dd74934f-a544-4436-9f91-411b6300186f_stg_test.png'"
+        },
+        {
+          "bits_per_channel": 3,
+          "error": "cannot identify image file '/home/runner/workspace/artifacts/stegano-app/backend/storage/uploads/dd74934f-a544-4436-9f91-411b6300186f_stg_test.png'"
+        },
+        {
+          "bits_per_channel": 4,
+          "error": "cannot identify image file '/home/runner/workspace/artifacts/stegano-app/backend/storage/uploads/dd74934f-a544-4436-9f91-411b6300186f_stg_test.png'"
+        }
+      ]
+    },
+    "capacity": {
+      "error": "cannot identify image file '/home/runner/workspace/artifacts/stegano-app/backend/storage/uploads/dd74934f-a544-4436-9f91-411b6300186f_stg_test.png'"
+    },
+    "technical_summary": "Payload: no encontrado o formato incompatible."
+  },
+  {
+    "id": "664a763b-4fc3-453a-9b30-a8ec2d88ad4d",
+    "filename": "stg_test.png",
+    "created_at": "2026-06-15T15:18:13.750871",
+    "final_decision": {
+      "status": "no_evidence",
+      "title": "Sin evidencia detectable",
+      "summary": "No se encontró payload compatible con el formato StegoDetect y el puntaje ML de esteganografía fue bajo. Esto indica baja evidencia detectable dentro del alcance del modelo, pero no descarta técnicas externas, cifradas o no compatibles con el sistema.",
+      "evidence_source": "none",
+      "reliability": "medium"
+    },
+    "ml_detection": {
+      "error": "Error preprocesando la imagen: cannot identify image file '/home/runner/workspace/artifacts/stegano-app/backend/storage/uploads/d1b9589d-5683-480d-9faa-ce1a3c110bea_stg_test.png'"
+    },
+    "model_applicability": {
+      "domain_status": "out_of_domain",
+      "ml_score_reliability": "low",
+      "compatibility_score": 0,
+      "reasons": [
+        "No se pudo abrir la imagen: cannot identify image file '/home/runner/workspace/artifacts/stegano-app/backend/storage/uploads/d1b9589d-5683-480d-9faa-ce1a3c110bea_stg_test.png'"
+      ],
+      "image_format": "unknown",
+      "image_size": [
+        0,
+        0
+      ],
+      "image_mode": "unknown",
+      "color_saturation": 0.0
+    },
+    "reliability": {
+      "label": "Baja — imagen fuera del dominio del modelo",
+      "level": "low",
+      "tooltip": "El modelo no fue entrenado con imágenes de este tipo (formato, resolución o saturación incompatibles). El puntaje no debe interpretarse como probabilidad calibrada."
+    },
+    "lsb_analysis": {
+      "error": "cannot identify image file '/home/runner/workspace/artifacts/stegano-app/backend/storage/uploads/d1b9589d-5683-480d-9faa-ce1a3c110bea_stg_test.png'"
+    },
+    "payload_extraction": {
+      "payload_found": false,
+      "message": "No se encontró payload con ninguna configuración probada.",
+      "auto_extraction_attempts": [
+        {
+          "bits_per_channel": 1,
+          "error": "cannot identify image file '/home/runner/workspace/artifacts/stegano-app/backend/storage/uploads/d1b9589d-5683-480d-9faa-ce1a3c110bea_stg_test.png'"
+        },
+        {
+          "bits_per_channel": 2,
+          "error": "cannot identify image file '/home/runner/workspace/artifacts/stegano-app/backend/storage/uploads/d1b9589d-5683-480d-9faa-ce1a3c110bea_stg_test.png'"
+        },
+        {
+          "bits_per_channel": 3,
+          "error": "cannot identify image file '/home/runner/workspace/artifacts/stegano-app/backend/storage/uploads/d1b9589d-5683-480d-9faa-ce1a3c110bea_stg_test.png'"
+        },
+        {
+          "bits_per_channel": 4,
+          "error": "cannot identify image file '/home/runner/workspace/artifacts/stegano-app/backend/storage/uploads/d1b9589d-5683-480d-9faa-ce1a3c110bea_stg_test.png'"
+        }
+      ]
+    },
+    "capacity": {
+      "error": "cannot identify image file '/home/runner/workspace/artifacts/stegano-app/backend/storage/uploads/d1b9589d-5683-480d-9faa-ce1a3c110bea_stg_test.png'"
+    },
+    "technical_summary": "Payload: no encontrado o formato incompatible."
+  },
+  {
+    "id": "d6560be3-3a99-4b76-b7f3-789d142cf873",
+    "filename": "wallpaper.png",
+    "created_at": "2026-06-15T15:18:20.017889",
+    "final_decision": {
+      "status": "no_evidence",
+      "title": "Sin evidencia detectable",
+      "summary": "No se encontró payload compatible con el formato StegoDetect y el puntaje ML de esteganografía fue bajo. Esto indica baja evidencia detectable dentro del alcance del modelo, pero no descarta técnicas externas, cifradas o no compatibles con el sistema.",
+      "evidence_source": "none",
+      "reliability": "medium"
+    },
+    "ml_detection": {
+      "prediction": "cover",
+      "probability": 0.0,
+      "label": "Sin mensaje oculto",
+      "threshold": 0.46,
+      "model_version": "srnet-lite-finetuned-v1",
+      "mock_mode": false
+    },
+    "model_applicability": {
+      "domain_status": "possibly_out_of_domain",
+      "ml_score_reliability": "medium",
+      "compatibility_score": 55,
+      "reasons": [
+        "Formato PNG sin compresión destructiva (compatible con entrenamiento).",
+        "Resolución 2000×1500 superior al rango de entrenamiento (256–1024 px por lado).",
+        "Alta saturación de color (Δ=80 promedio entre canales) — distribución de color muy distinta al dominio grayscale/casi-gris de entrenamiento BOSSBase."
+      ],
+      "image_format": "PNG",
+      "image_size": [
+        2000,
+        1500
+      ],
+      "image_mode": "RGB",
+      "color_saturation": 80.0
+    },
+    "reliability": {
+      "label": "Media — imagen parcialmente compatible",
+      "level": "medium",
+      "tooltip": "La imagen comparte algunas características con el dominio de entrenamiento, pero no todas. Resultado orientativo."
+    },
+    "lsb_analysis": {
+      "width": 2000,
+      "height": 1500,
+      "total_pixels": 3000000,
+      "channel_stats": {
+        "R": {
+          "zeros": 1500784,
+          "ones": 1499216,
+          "total": 3000000,
+          "ratio_ones": 0.4997,
+          "ratio_zeros": 0.5003,
+          "entropy": 1.0
+        },
+        "G": {
+          "zeros": 1499675,
+          "ones": 1500325,
+          "total": 3000000,
+          "ratio_ones": 0.5001,
+          "ratio_zeros": 0.4999,
+          "entropy": 1.0
+        },
+        "B": {
+          "zeros": 1499487,
+          "ones": 1500513,
+          "total": 3000000,
+          "ratio_ones": 0.5002,
+          "ratio_zeros": 0.4998,
+          "entropy": 1.0
+        }
+      },
+      "has_system_header": false,
+      "capacity_estimate": {
+        "total_pixels": 3000000,
+        "bytes_available": 1125000,
+        "kb_available": 1098.63
+      },
+      "randomness_note": "Distribución LSB cercana a 50/50 — posible contenido esteganografiado o ruido natural."
+    },
+    "payload_extraction": {
+      "payload_found": false,
+      "message": "No se encontró payload compatible con el formato LSB del sistema.",
+      "lsb_analysis": {
+        "width": 2000,
+        "height": 1500,
+        "total_pixels": 3000000,
+        "channel_stats": {
+          "R": {
+            "zeros": 1500784,
+            "ones": 1499216,
+            "total": 3000000,
+            "ratio_ones": 0.4997,
+            "ratio_zeros": 0.5003,
+            "entropy": 1.0
+          },
+          "G": {
+            "zeros": 1499675,
+            "ones": 1500325,
+            "total": 3000000,
+            "ratio_ones": 0.5001,
+            "ratio_zeros": 0.4999,
+            "entropy": 1.0
+          },
+          "B": {
+            "zeros": 1499487,
+            "ones": 1500513,
+            "total": 3000000,
+            "ratio_ones": 0.5002,
+            "ratio_zeros": 0.4998,
+            "entropy": 1.0
+          }
+        },
+        "has_system_header": false,
+        "capacity_estimate": {
+          "total_pixels": 3000000,
+          "bytes_available": 1125000,
+          "kb_available": 1098.63
+        },
+        "randomness_note": "Distribución LSB cercana a 50/50 — posible contenido esteganografiado o ruido natural."
+      },
+      "auto_extraction_attempts": [
+        {
+          "bits_per_channel": 1,
+          "payload_found": false,
+          "sha256_valid": false
+        },
+        {
+          "bits_per_channel": 2,
+          "payload_found": false,
+          "sha256_valid": false
+        },
+        {
+          "bits_per_channel": 3,
+          "payload_found": false,
+          "sha256_valid": false
+        },
+        {
+          "bits_per_channel": 4,
+          "payload_found": false,
+          "sha256_valid": false
+        }
+      ]
+    },
+    "capacity": {
+      "width": 2000,
+      "height": 1500,
+      "total_pixels": 3000000,
+      "channels_used": [
+        "R",
+        "G",
+        "B"
+      ],
+      "bits_per_channel": 1,
+      "bits_available": 9000000,
+      "bytes_available": 1125000,
+      "header_overhead": 217,
+      "usable_bytes": 1124783,
+      "usable_kb": 1098.42,
+      "max_recommended_bytes": 1124783
+    },
+    "technical_summary": "ML (srnet-lite-finetuned-v1): COVER (0.0%) | Cabecera StegoDetect: no encontrada. | Distribución LSB cercana a 50/50 — posible contenido esteganografiado o ruido natural. | Payload: no encontrado o formato incompatible."
+  },
+  {
+    "id": "6ec4b080-48db-411d-8afd-51bdb5d9a384",
+    "filename": "stg_test.png",
+    "created_at": "2026-06-15T15:18:44.774589",
+    "final_decision": {
+      "status": "payload_found",
+      "title": "Mensaje oculto encontrado",
+      "summary": "Se encontró y validó un payload mediante extracción LSB del sistema (cabecera STEGODETECTv1 detectada, SHA-256 verificado). Evidencia directa — no depende del modelo ML.",
+      "evidence_source": "lsb_extraction",
+      "reliability": "high"
+    },
+    "ml_detection": {
+      "prediction": "cover",
+      "probability": 0.0,
+      "label": "Sin mensaje oculto",
+      "threshold": 0.46,
+      "model_version": "srnet-lite-finetuned-v1",
+      "mock_mode": false
+    },
+    "model_applicability": {
+      "domain_status": "possibly_out_of_domain",
+      "ml_score_reliability": "medium",
+      "compatibility_score": 55,
+      "reasons": [
+        "Formato PNG sin compresión destructiva (compatible con entrenamiento).",
+        "Resolución 2000×1500 superior al rango de entrenamiento (256–1024 px por lado).",
+        "Alta saturación de color (Δ=80 promedio entre canales) — distribución de color muy distinta al dominio grayscale/casi-gris de entrenamiento BOSSBase."
+      ],
+      "image_format": "PNG",
+      "image_size": [
+        2000,
+        1500
+      ],
+      "image_mode": "RGB",
+      "color_saturation": 80.0
+    },
+    "reliability": {
+      "label": "Media — imagen parcialmente compatible",
+      "level": "medium",
+      "tooltip": "La imagen comparte algunas características con el dominio de entrenamiento, pero no todas. Resultado orientativo."
+    },
+    "lsb_analysis": {
+      "width": 2000,
+      "height": 1500,
+      "total_pixels": 3000000,
+      "channel_stats": {
+        "R": {
+          "zeros": 1500998,
+          "ones": 1499002,
+          "total": 3000000,
+          "ratio_ones": 0.4997,
+          "ratio_zeros": 0.5003,
+          "entropy": 1.0
+        },
+        "G": {
+          "zeros": 1499907,
+          "ones": 1500093,
+          "total": 3000000,
+          "ratio_ones": 0.5,
+          "ratio_zeros": 0.5,
+          "entropy": 1.0
+        },
+        "B": {
+          "zeros": 1499705,
+          "ones": 1500295,
+          "total": 3000000,
+          "ratio_ones": 0.5001,
+          "ratio_zeros": 0.4999,
+          "entropy": 1.0
+        }
+      },
+      "has_system_header": false,
+      "capacity_estimate": {
+        "total_pixels": 3000000,
+        "bytes_available": 1125000,
+        "kb_available": 1098.63
+      },
+      "randomness_note": "Distribución LSB cercana a 50/50 — posible contenido esteganografiado o ruido natural."
+    },
+    "payload_extraction": {
+      "payload_found": true,
+      "payload_type": "pdf",
+      "filename": "test_payload.pdf",
+      "mime_type": "application/pdf",
+      "payload_size": 1378,
+      "sha256_header": "4346c8b9fe5531b2b2c14733589e39928c95631e25a8810860c439e08f254f20",
+      "sha256_actual": "4346c8b9fe5531b2b2c14733589e39928c95631e25a8810860c439e08f254f20",
+      "sha256_valid": true,
+      "algorithm": "LSB-2bit-RGB",
+      "bits_per_channel": 2,
+      "channels": [
+        "R",
+        "G",
+        "B"
+      ],
+      "created_by": "StegoDetect",
+      "lsb_analysis": {
+        "width": 2000,
+        "height": 1500,
+        "total_pixels": 3000000,
+        "channel_stats": {
+          "R": {
+            "zeros": 1500998,
+            "ones": 1499002,
+            "total": 3000000,
+            "ratio_ones": 0.4997,
+            "ratio_zeros": 0.5003,
+            "entropy": 1.0
+          },
+          "G": {
+            "zeros": 1499907,
+            "ones": 1500093,
+            "total": 3000000,
+            "ratio_ones": 0.5,
+            "ratio_zeros": 0.5,
+            "entropy": 1.0
+          },
+          "B": {
+            "zeros": 1499705,
+            "ones": 1500295,
+            "total": 3000000,
+            "ratio_ones": 0.5001,
+            "ratio_zeros": 0.4999,
+            "entropy": 1.0
+          }
+        },
+        "has_system_header": false,
+        "capacity_estimate": {
+          "total_pixels": 3000000,
+          "bytes_available": 1125000,
+          "kb_available": 1098.63
+        },
+        "randomness_note": "Distribución LSB cercana a 50/50 — posible contenido esteganografiado o ruido natural."
+      },
+      "positions_summary": {
+        "first_pixel": {
+          "x": 0,
+          "y": 0
+        },
+        "last_pixel": {
+          "x": 16,
+          "y": 0
+        },
+        "total_pixels_used": 2328,
+        "total_bits_used": 13968,
+        "channels_used": [
+          "R",
+          "G",
+          "B"
+        ]
+      },
+      "first_positions": [
+        {
+          "x": 0,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 0
+        },
+        {
+          "x": 0,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 1
+        },
+        {
+          "x": 0,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 2
+        },
+        {
+          "x": 0,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 3
+        },
+        {
+          "x": 0,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 4
+        },
+        {
+          "x": 0,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 5
+        },
+        {
+          "x": 1,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 6
+        },
+        {
+          "x": 1,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 7
+        },
+        {
+          "x": 1,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 8
+        },
+        {
+          "x": 1,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 9
+        },
+        {
+          "x": 1,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 10
+        },
+        {
+          "x": 1,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 11
+        },
+        {
+          "x": 2,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 12
+        },
+        {
+          "x": 2,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 13
+        },
+        {
+          "x": 2,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 14
+        },
+        {
+          "x": 2,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 15
+        },
+        {
+          "x": 2,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 16
+        },
+        {
+          "x": 2,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 17
+        },
+        {
+          "x": 3,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 18
+        },
+        {
+          "x": 3,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 19
+        },
+        {
+          "x": 3,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 20
+        },
+        {
+          "x": 3,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 21
+        },
+        {
+          "x": 3,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 22
+        },
+        {
+          "x": 3,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 23
+        },
+        {
+          "x": 4,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 24
+        },
+        {
+          "x": 4,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 25
+        },
+        {
+          "x": 4,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 26
+        },
+        {
+          "x": 4,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 27
+        },
+        {
+          "x": 4,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 28
+        },
+        {
+          "x": 4,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 29
+        },
+        {
+          "x": 5,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 30
+        },
+        {
+          "x": 5,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 31
+        },
+        {
+          "x": 5,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 32
+        },
+        {
+          "x": 5,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 33
+        },
+        {
+          "x": 5,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 34
+        },
+        {
+          "x": 5,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 35
+        },
+        {
+          "x": 6,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 36
+        },
+        {
+          "x": 6,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 37
+        },
+        {
+          "x": 6,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 38
+        },
+        {
+          "x": 6,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 39
+        },
+        {
+          "x": 6,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 40
+        },
+        {
+          "x": 6,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 41
+        },
+        {
+          "x": 7,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 42
+        },
+        {
+          "x": 7,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 43
+        },
+        {
+          "x": 7,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 44
+        },
+        {
+          "x": 7,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 45
+        },
+        {
+          "x": 7,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 46
+        },
+        {
+          "x": 7,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 47
+        },
+        {
+          "x": 8,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 48
+        },
+        {
+          "x": 8,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 49
+        },
+        {
+          "x": 8,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 50
+        },
+        {
+          "x": 8,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 51
+        },
+        {
+          "x": 8,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 52
+        },
+        {
+          "x": 8,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 53
+        },
+        {
+          "x": 9,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 54
+        },
+        {
+          "x": 9,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 55
+        },
+        {
+          "x": 9,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 56
+        },
+        {
+          "x": 9,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 57
+        },
+        {
+          "x": 9,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 58
+        },
+        {
+          "x": 9,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 59
+        },
+        {
+          "x": 10,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 60
+        },
+        {
+          "x": 10,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 61
+        },
+        {
+          "x": 10,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 62
+        },
+        {
+          "x": 10,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 63
+        },
+        {
+          "x": 10,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 64
+        },
+        {
+          "x": 10,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 65
+        },
+        {
+          "x": 11,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 66
+        },
+        {
+          "x": 11,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 67
+        },
+        {
+          "x": 11,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 68
+        },
+        {
+          "x": 11,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 69
+        },
+        {
+          "x": 11,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 70
+        },
+        {
+          "x": 11,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 71
+        },
+        {
+          "x": 12,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 72
+        },
+        {
+          "x": 12,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 73
+        },
+        {
+          "x": 12,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 74
+        },
+        {
+          "x": 12,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 75
+        },
+        {
+          "x": 12,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 76
+        },
+        {
+          "x": 12,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 77
+        },
+        {
+          "x": 13,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 78
+        },
+        {
+          "x": 13,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 79
+        },
+        {
+          "x": 13,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 80
+        },
+        {
+          "x": 13,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 81
+        },
+        {
+          "x": 13,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 82
+        },
+        {
+          "x": 13,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 83
+        },
+        {
+          "x": 14,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 84
+        },
+        {
+          "x": 14,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 85
+        },
+        {
+          "x": 14,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 86
+        },
+        {
+          "x": 14,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 87
+        },
+        {
+          "x": 14,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 88
+        },
+        {
+          "x": 14,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 89
+        },
+        {
+          "x": 15,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 90
+        },
+        {
+          "x": 15,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 91
+        },
+        {
+          "x": 15,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 92
+        },
+        {
+          "x": 15,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 93
+        },
+        {
+          "x": 15,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 94
+        },
+        {
+          "x": 15,
+          "y": 0,
+          "channel": "B",
+          "bit_index": 95
+        },
+        {
+          "x": 16,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 96
+        },
+        {
+          "x": 16,
+          "y": 0,
+          "channel": "R",
+          "bit_index": 97
+        },
+        {
+          "x": 16,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 98
+        },
+        {
+          "x": 16,
+          "y": 0,
+          "channel": "G",
+          "bit_index": 99
+        }
+      ],
+      "extracted_filename": "extracted_fe35b915-37ca-43a5-bcd4-c79f33999597.pdf",
+      "artifact_id": "fe35b915-37ca-43a5-bcd4-c79f33999597",
+      "bits_per_channel_detected": 2,
+      "channels_detected": [
+        "R",
+        "G",
+        "B"
+      ],
+      "auto_extraction_attempts": [
+        {
+          "bits_per_channel": 1,
+          "payload_found": false,
+          "sha256_valid": false
+        },
+        {
+          "bits_per_channel": 2,
+          "payload_found": true,
+          "sha256_valid": true
+        }
+      ],
+      "download_payload_url": "/stego/download/fe35b915-37ca-43a5-bcd4-c79f33999597/payload"
+    },
+    "capacity": {
+      "width": 2000,
+      "height": 1500,
+      "total_pixels": 3000000,
+      "channels_used": [
+        "R",
+        "G",
+        "B"
+      ],
+      "bits_per_channel": 1,
+      "bits_available": 9000000,
+      "bytes_available": 1125000,
+      "header_overhead": 217,
+      "usable_bytes": 1124783,
+      "usable_kb": 1098.42,
+      "max_recommended_bytes": 1124783
+    },
+    "technical_summary": "ML (srnet-lite-finetuned-v1): COVER (0.0%) | Cabecera StegoDetect: no encontrada. | Distribución LSB cercana a 50/50 — posible contenido esteganografiado o ruido natural. | Payload extraído: tipo=pdf, 1378 bytes, SHA-256=OK."
   }
 ]

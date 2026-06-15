@@ -226,8 +226,8 @@
                   <div class="alert alert-info py-2 small mb-3" id="model-scope-block">
                     <strong><i class="bi bi-info-circle me-1"></i>Alcance del modelo ML</strong>
                     <ul class="mb-0 mt-1 ps-3">
-                      <li>Entrenado con imágenes <strong>BOSSBase</strong> en PNG (~512×512) y payloads LSB controlados (p005/p010/p020).</li>
-                      <li>El puntaje es más confiable en imágenes <strong>similares al dominio de entrenamiento</strong>.</li>
+                      <li><strong>Fine-tuned</strong> con <strong>BOSSBase</strong> (PNG ~512×512, LSB p005/p010/p020) <strong>más dataset externo</strong> (wallpapers, fotos, imágenes web y comprimidas). Threshold calibrado: <strong>0.46</strong>.</li>
+                      <li>El resultado ML es <strong>evidencia probabilística</strong>. En imágenes muy alejadas del dominio de entrenamiento puede no estar calibrado.</li>
                       <li>En imágenes externas, JPG, wallpapers o de alta resolución el resultado es <strong>orientativo, no concluyente</strong>.</li>
                       <li>La extracción de payload solo es concluyente si existe cabecera <strong>StegoDetect</strong> y SHA-256 válido.</li>
                     </ul>
@@ -632,8 +632,8 @@
                   <div class="info-card p-3 rounded h-100">
                     <i class="bi bi-cpu fs-4 text-primary mb-2 d-block"></i>
                     <h6 class="fw-bold small">Detector ML — SRNet-lite</h6>
-                    <p class="small text-muted mb-0">Red neuronal convolucional entrenada sobre BOSSBase v1.01.
-                      Aplica filtros SRM para amplificar residuos de ruido y clasifica cover vs stego.</p>
+                    <p class="small text-muted mb-0">Red neuronal convolucional fine-tuned con BOSSBase + dataset externo.
+                      Aplica filtros SRM para amplificar residuos de ruido y clasifica cover vs stego. Threshold: 0.46.</p>
                   </div>
                 </div>
                 <div class="col-md-6">

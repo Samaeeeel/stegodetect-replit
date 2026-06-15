@@ -19,7 +19,7 @@ INTEGRATED_RESULTS_FILE = BASE_DIR / "backend" / "storage" / "integrated_results
 # ── Checkpoint del modelo ─────────────────────────────────────────────────────
 CHECKPOINTS_DIR = BASE_DIR / "ml" / "checkpoints"
 # El sistema busca estos archivos en orden; usa el primero que encuentre
-MODEL_CHECKPOINT_NAMES = ["srnet_lite_best.pt", "model.pt"]
+MODEL_CHECKPOINT_NAMES = ["srnet_lite_best_state_dict.pt", "srnet_lite_best.pt", "model.pt"]
 
 # ── Validación de imágenes ────────────────────────────────────────────────────
 ALLOWED_EXTENSIONS = {".png", ".jpg", ".jpeg"}
@@ -31,7 +31,7 @@ MIN_IMAGE_HEIGHT = 64                      # Alto mínimo recomendado en píxele
 # ── Preprocesamiento del modelo ───────────────────────────────────────────────
 MODEL_INPUT_SIZE = 128                     # El modelo espera imágenes 128x128
 MODEL_VERSION_MOCK = "mock-v0.1"
-MODEL_VERSION_REAL = "srnet-lite-v1.0"    # Cambia esto al entrenar el modelo real
+MODEL_VERSION_REAL = "srnet-lite-finetuned-v1"  # Fine-tuned con BOSSBase + dataset externo
 
 # ── Configuración del servidor ────────────────────────────────────────────────
 APP_TITLE = "Sistema inteligente de detección de esteganografía"

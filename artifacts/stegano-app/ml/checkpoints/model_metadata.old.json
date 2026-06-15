@@ -1,0 +1,17 @@
+{
+  "epoch": 15,
+  "val_auc": 1.0,
+  "val_loss": 0.0004,
+  "val_accuracy": 1.0,
+  "val_f1": 1.0,
+  "threshold": 0.0404,
+  "model_version": "srnet-lite-v1.0",
+  "input_size": 128,
+  "input_channels": 3,
+  "saved_at": "2026-05-14T02:35:24.216983",
+  "architecture": {
+    "srm_filters": 9,
+    "use_attention": true,
+    "dropout_rate": 0.5
+  }
+}

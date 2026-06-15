@@ -3,19 +3,17 @@ Evaluador de aplicabilidad del modelo SRNet-lite sobre una imagen.
 
 Justificación académica
 -----------------------
-El modelo SRNet-lite fue entrenado con imágenes BOSSBase v1.01:
-  - PNG sin compresión destructiva.
-  - Resolución cercana a 512×512.
-  - Grayscale (o RGB con canales casi idénticos, baja saturación).
-  - Payloads LSB controlados p005 / p010 / p020.
-  - Threshold validado (~0.0404) dentro de ese dominio experimental.
+El modelo SRNet-lite (fine-tuned) fue entrenado con:
+  - BOSSBase v1.01: PNG sin compresión, ~512×512, baja saturación, payloads p005/p010/p020.
+  - Dataset externo: wallpapers, fotos de teléfono, imágenes web, capturas de pantalla
+    y material comprimido para redes sociales.
+  - Threshold calibrado = 0.46 sobre conjunto de validación mixto.
 
-Cuando la imagen analizada se aleja de ese dominio (JPG comprimido,
-wallpaper 4K, foto a color saturada), el puntaje del modelo deja de
-ser una probabilidad calibrada y se convierte en una respuesta de
-red neuronal sobre features fuera de distribución (OOD). Reportarlo
-como "X% de probabilidad de esteganografía" sería académicamente
-deshonesto.
+Aunque el fine-tuning amplió el dominio, imágenes muy alejadas de los datos de
+entrenamiento (resoluciones extremas, formatos inusuales, alta compresión JPEG)
+aún pueden producir puntajes fuera de distribución (OOD). En esos casos el
+puntaje debe interpretarse como evidencia probabilística, no como certeza.
+Reportarlo sin esta advertencia sería académicamente deshonesto.
 
 Esta función NO ejecuta inferencia ML adicional: usa heurísticas
 deterministas sobre metadatos de la imagen (formato, dimensiones,

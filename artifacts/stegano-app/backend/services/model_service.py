@@ -429,13 +429,15 @@ def _get_explanation(prediction: str, probability: float, mock: bool) -> str:
         return (
             f"{prefix}Puntaje ML de esteganografía: {pct}%. El modelo detectó "
             "patrones estadísticos en los bits menos significativos compatibles "
-            "con esteganografía LSB dentro de su dominio de entrenamiento. "
+            "con esteganografía LSB. Modelo fine-tuned con BOSSBase e imágenes "
+            "externas. El resultado ML es probabilístico. "
             "Validar con el análisis técnico LSB antes de concluir."
         )
     else:
         return (
             f"{prefix}Puntaje ML de esteganografía: {pct}%. El modelo no detectó "
             "patrones estadísticos compatibles con esteganografía LSB dentro de su "
-            "dominio de entrenamiento. Esto representa baja evidencia ML, pero no "
-            "descarta técnicas externas, cifradas o fuera del alcance del modelo."
+            "del modelo. Esto representa baja evidencia ML, pero no "
+            "descarta técnicas externas, cifradas o fuera del alcance del modelo. "
+            "Modelo fine-tuned con BOSSBase e imágenes externas — resultado probabilístico."
         )
