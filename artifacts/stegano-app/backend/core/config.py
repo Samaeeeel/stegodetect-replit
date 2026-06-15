@@ -31,7 +31,7 @@ MIN_IMAGE_HEIGHT = 64                      # Alto mínimo recomendado en píxele
 # ── Preprocesamiento del modelo ───────────────────────────────────────────────
 MODEL_INPUT_SIZE = 128                     # El modelo espera imágenes 128x128
 MODEL_VERSION_MOCK = "mock-v0.1"
-MODEL_VERSION_REAL = "srnet-lite-finetuned-v1"  # Fine-tuned con BOSSBase + dataset externo
+MODEL_VERSION_REAL = "finetuned_external_domain_v1"  # coincide con model_metadata.json
 
 # ── Configuración del servidor ────────────────────────────────────────────────
 APP_TITLE = "Sistema inteligente de detección de esteganografía"
