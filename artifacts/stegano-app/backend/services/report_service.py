@@ -280,8 +280,10 @@ def _build_integrated_pdf(record: dict, output_path: Path) -> None:
     status_colors = {
         "payload_found":             colors.HexColor("#7c3aed"),  # lila
         "ml_suspicious":             colors.HexColor("#dc2626"),  # rojo
-        "ml_suspicious_unverified":  colors.HexColor("#d97706"),  # ámbar
-        "no_evidence":               colors.HexColor("#16a34a"),  # verde
+        "ml_suspicious_unverified":  colors.HexColor("#d97706"),  # ámbar (compat. PDF antiguo)
+        "inconclusive_low_ml":       colors.HexColor("#d97706"),  # ámbar
+        "no_evidence":               colors.HexColor("#16a34a"),  # verde (compat. PDF antiguo)
+        "no_stego_evidence":         colors.HexColor("#16a34a"),  # verde
     }
     status   = decision.get("status", "no_evidence")
     dec_col  = status_colors.get(status, colors.HexColor("#374151"))
@@ -294,7 +296,7 @@ def _build_integrated_pdf(record: dict, output_path: Path) -> None:
 
     evidence_labels = {
         "lsb_extraction":             "Extracción LSB StegoDetect (evidencia directa)",
-        "ml_detection":               "Modelo ML (dentro del dominio)",
+        "ml_detection":               "Modelo ML — evidencia probabilística",
         "ml_detection_out_of_domain": "Modelo ML (fuera del dominio — no concluyente)",
         "none":                       "Sin evidencia detectable",
     }
@@ -440,34 +442,59 @@ def _reliability_human(r: str) -> str:
 def _build_conclusion(decision: dict, extraction: dict, ml: dict, applicability: dict) -> str:
     """
     Construye la conclusión técnica en lenguaje natural.
-    Prioriza extracción LSB sobre cualquier puntaje ML.
+    Soporta los cuatro status del nuevo esquema de decisión:
+      payload_found | ml_suspicious | inconclusive_low_ml | no_stego_evidence
+    Mantiene compatibilidad con status antiguos (ml_suspicious_unverified, no_evidence).
     """
     status = decision.get("status")
     prob   = (ml.get("probability") or 0.0) * 100
+    thr    = (ml.get("threshold") or 0.46) * 100
 
     if status == "payload_found":
         ptype  = extraction.get("payload_type", "desconocido")
         size   = extraction.get("payload_size", "—")
         fname  = extraction.get("filename") or extraction.get("extracted_filename") or "—"
+        alg    = extraction.get("algorithm_detected") or extraction.get("algorithm", "LSB STEGODETECTv1")
+        bpc    = extraction.get("bits_per_channel_detected") or extraction.get("bits_per_channel", "—")
+        chs    = extraction.get("channels_detected") or extraction.get("channels", [])
+        chs_str = ", ".join(chs) if chs else "—"
         return (
             f"<b>Mensaje oculto encontrado.</b> El sistema recuperó y validó un "
             f"payload <b>{ptype}</b> ({size} bytes, archivo «{fname}») mediante "
             f"extracción LSB con cabecera STEGODETECTv1 y SHA-256 válido. "
-            f"Aunque el modelo ML asignó un puntaje de {prob:.1f}%, la evidencia "
-            f"directa de extracción confirma la presencia de información oculta "
-            f"compatible con el formato del sistema. La extracción LSB es "
-            f"matemáticamente verificable y no depende de la calibración del "
-            f"modelo, por lo que tiene prioridad sobre el puntaje ML."
+            f"Parámetros de inserción detectados: algoritmo={alg}, "
+            f"bits/canal={bpc}, canales={chs_str}. "
+            f"El modelo ML asignó un puntaje de {prob:.1f}%; sin embargo, la "
+            f"evidencia directa de extracción tiene prioridad y es "
+            f"matemáticamente verificable."
         )
     if status == "ml_suspicious":
         return (
-            f"<b>Posibles patrones compatibles con esteganografía.</b> El modelo ML "
-            f"asignó un puntaje de {prob:.1f}% sobre una imagen compatible con su "
-            f"dominio de entrenamiento. No se recuperó payload StegoDetect, por lo "
-            f"que la imagen podría contener esteganografía con otro algoritmo, "
-            f"cifrado, o ser una falsa alarma del modelo. Se recomienda validación "
-            f"adicional."
+            f"<b>Posible esteganografía detectada.</b> El modelo ML "
+            f"asignó un puntaje de {prob:.1f}%, superando el umbral calibrado "
+            f"({thr:.1f}%). No se recuperó payload StegoDetect: el posible payload "
+            f"podría haber sido insertado con otra herramienta, estar cifrado, "
+            f"o tratarse de una falsa alarma estadística. Se recomienda validación "
+            f"adicional con otras herramientas forenses."
         )
+    if status in ("inconclusive_low_ml",):
+        return (
+            f"<b>Sin evidencia concluyente.</b> El modelo ML asignó un puntaje de "
+            f"{prob:.1f}%, en la banda intermedia (30–{thr:.0f}%). "
+            f"Hay cierta variación estadística en los LSBs, pero insuficiente para "
+            f"concluir presencia de esteganografía según el umbral calibrado del "
+            f"modelo. No se encontró payload StegoDetect recuperable."
+        )
+    if status in ("no_stego_evidence",):
+        return (
+            f"<b>Sin evidencia esteganográfica detectable.</b> El puntaje ML fue "
+            f"de {prob:.1f}%, por debajo del umbral de baja evidencia (30%). "
+            f"No se encontró cabecera StegoDetect ni payload recuperable. Según "
+            f"los métodos aplicados, la imagen no presenta evidencia esteganográfica "
+            f"detectable. Esto no descarta técnicas externas, cifradas o incompatibles "
+            f"con el protocolo StegoDetect."
+        )
+    # Compatibilidad con status antiguos
     if status == "ml_suspicious_unverified":
         return (
             f"<b>Resultado ML no concluyente.</b> El modelo asignó un puntaje de "
@@ -476,6 +503,7 @@ def _build_conclusion(decision: dict, extraction: dict, ml: dict, applicability:
             f"interpretarse como evidencia probabilística, no como detección "
             f"concluyente. Tampoco se encontró payload StegoDetect recuperable."
         )
+    # Fallback genérico (no_evidence y desconocidos)
     return (
         f"<b>Sin evidencia detectable.</b> No se encontró payload compatible con "
         f"el formato StegoDetect y el puntaje ML fue de {prob:.1f}%, por debajo "

@@ -28,6 +28,7 @@ from backend.services import report_service
 from backend.services.steganography_service import (
     LSBSteganographyService,
     StegoCapacityError,
+    MAX_PAYLOAD_BYTES,
 )
 from backend.services import model_service
 from backend.services.domain_assessor import (
@@ -74,17 +75,18 @@ async def embed_text(
 
     aid = result["artifact_id"]
     return JSONResponse({
-        "success":           True,
-        "artifact_id":       aid,
-        "stego_image_url":   f"/stego/download/{aid}/image",
-        "download_url":      f"/stego/download/{aid}/image",
-        "csv_url":           f"/stego/download/{aid}/csv",
-        "map_url":           f"/stego/download/{aid}/map",
-        "capacity":          result["capacity"],
-        "payload":           result["payload"],
-        "positions_summary": result["positions_summary"],
-        "first_positions":   result["first_positions"],
-        "technical":         result["technical"],
+        "success":            True,
+        "artifact_id":        aid,
+        "stego_image_url":    f"/stego/download/{aid}/image",
+        "download_url":       f"/stego/download/{aid}/image",
+        "csv_url":            f"/stego/download/{aid}/csv",
+        "map_url":            f"/stego/download/{aid}/map",
+        "capacity":           result["capacity"],
+        "payload":            result["payload"],
+        "positions_summary":  result["positions_summary"],
+        "insertion_density":  result["insertion_density"],
+        "first_positions":    result["first_positions"],
+        "technical":          result["technical"],
     })
 
 
@@ -135,17 +137,18 @@ async def embed_file(
 
     aid = result["artifact_id"]
     return JSONResponse({
-        "success":           True,
-        "artifact_id":       aid,
-        "stego_image_url":   f"/stego/download/{aid}/image",
-        "download_url":      f"/stego/download/{aid}/image",
-        "csv_url":           f"/stego/download/{aid}/csv",
-        "map_url":           f"/stego/download/{aid}/map",
-        "capacity":          result["capacity"],
-        "payload":           result["payload"],
-        "positions_summary": result["positions_summary"],
-        "first_positions":   result["first_positions"],
-        "technical":         result["technical"],
+        "success":            True,
+        "artifact_id":        aid,
+        "stego_image_url":    f"/stego/download/{aid}/image",
+        "download_url":       f"/stego/download/{aid}/image",
+        "csv_url":            f"/stego/download/{aid}/csv",
+        "map_url":            f"/stego/download/{aid}/map",
+        "capacity":           result["capacity"],
+        "payload":            result["payload"],
+        "positions_summary":  result["positions_summary"],
+        "insertion_density":  result["insertion_density"],
+        "first_positions":    result["first_positions"],
+        "technical":          result["technical"],
     })
 
 
@@ -236,6 +239,28 @@ async def full_analysis(
     except Exception as exc:
         capacity = {"error": str(exc)}
 
+    # 4b. Enriquecer extracción con campos de trazabilidad para el frontend y PDF
+    if isinstance(extraction, dict):
+        if extraction.get("payload_found"):
+            extraction.setdefault("header_detected", True)
+            extraction.setdefault(
+                "algorithm_detected",
+                extraction.get("algorithm", "LSB STEGODETECTv1"),
+            )
+            extraction.setdefault(
+                "bits_per_channel_detected",
+                extraction.get("bits_per_channel", 1),
+            )
+            extraction.setdefault(
+                "channels_detected",
+                extraction.get("channels", ["R", "G", "B"]),
+            )
+        else:
+            extraction.setdefault("header_detected", False)
+            extraction.setdefault("algorithm_detected", None)
+            extraction.setdefault("bits_per_channel_detected", None)
+            extraction.setdefault("channels_detected", None)
+
     # 5. Aplicabilidad del modelo (¿la imagen está dentro del dominio?)
     try:
         applicability = assess_model_applicability(image_path)
@@ -246,6 +271,11 @@ async def full_analysis(
             "reasons":              [f"Error evaluando dominio: {exc}"],
         }
 
+    # 5b. Enriquecer ml_result con métricas de trazabilidad
+    prob_val = ml_result.get("probability", 0.0) or 0.0
+    ml_result["score_pct"]              = round(prob_val * 100, 1)
+    ml_result["low_evidence_threshold"] = LOW_EVIDENCE_THRESHOLD
+
     # 6. Fiabilidad combinada (puntaje ML + dominio)
     reliability = interpret_reliability(
         ml_probability = ml_result.get("probability", 0.0),
@@ -254,6 +284,22 @@ async def full_analysis(
     )
 
     final_decision = _build_final_decision(ml_result, lsb_analysis, extraction, applicability)
+
+    # 6b. Calcular capacity_analysis (capacidad teórica vs límite del sistema)
+    lsb_obj  = lsb_analysis if isinstance(lsb_analysis, dict) else {}
+    cap_est  = lsb_obj.get("capacity_estimate", {}) or {}
+    kb_avail = float(cap_est.get("kb_available") or 0)
+    theoretical_capacity_bytes = int(kb_avail * 1024)
+    capacity_analysis = {
+        "theoretical_capacity_bytes": theoretical_capacity_bytes,
+        "theoretical_capacity_kb":    round(kb_avail, 1),
+        "system_payload_limit_bytes": MAX_PAYLOAD_BYTES,
+        "system_payload_limit_mb":    round(MAX_PAYLOAD_BYTES / (1024 * 1024), 1),
+        "note": (
+            "La capacidad teórica corresponde a 1 bit/canal RGB (máximo absoluto de la imagen). "
+            "El sistema limita los payloads a 2 MB independientemente de la capacidad teórica."
+        ),
+    }
 
     # 7. Persistir el resultado integrado para que /stego/report/{id} pueda
     #    generar un PDF con la decisión integrada (no solo el ML).
@@ -269,6 +315,7 @@ async def full_analysis(
         "lsb_analysis":        lsb_analysis,
         "payload_extraction":  extraction,
         "capacity":            capacity,
+        "capacity_analysis":   capacity_analysis,
         "technical_summary":   _build_summary(ml_result, lsb_analysis, extraction),
     }
     _save_integrated_result(response)
@@ -414,6 +461,25 @@ def _parse_channels(channels_str: str) -> tuple:
     return tuple(result) if result else ("R", "G", "B")
 
 
+# Umbral de baja evidencia: puntajes ML entre LOW_EVIDENCE_THRESHOLD y el
+# threshold del modelo (0.46) se reportan como "inconclusive_low_ml".
+LOW_EVIDENCE_THRESHOLD = 0.30
+
+
+def _ml_evidence_band(prob: float) -> str:
+    """
+    Clasifica el puntaje ML en una banda de evidencia.
+      "low"          → prob < 0.30  (sin evidencia estadística notable)
+      "intermediate" → 0.30 ≤ prob < 0.46  (señal débil, bajo el threshold)
+      "suspicious"   → prob ≥ 0.46  (supera el threshold del modelo)
+    """
+    if prob >= 0.46:
+        return "suspicious"
+    if prob >= LOW_EVIDENCE_THRESHOLD:
+        return "intermediate"
+    return "low"
+
+
 def _build_final_decision(
     ml: dict,
     lsb: dict,
@@ -421,92 +487,125 @@ def _build_final_decision(
     applicability: dict,
 ) -> dict:
     """
-    Decisión integrada con conciencia de dominio.
+    Decisión integrada basada en bandas de evidencia ML + extracción LSB.
+
+    El dominio ya NO controla el status de la decisión (el modelo fue fine-tuned
+    con imágenes externas). La información de dominio sigue presente en
+    model_applicability para que el usuario pueda interpretarla.
 
     Prioridad (de mayor a menor evidencia):
 
       A. payload_found + sha256_valid
-         → "Mensaje oculto encontrado"  (LSB con integridad — evidencia directa, fiabilidad alta)
+         → "payload_found"  (evidencia directa LSB, máxima prioridad)
 
-      B. ML alto + imagen DENTRO del dominio (in_domain)
-         → "Posibles patrones compatibles con esteganografía"  (ML calibrado, fiabilidad media/alta)
+      B. ML ≥ threshold (0.46)
+         → "ml_suspicious"  (evidencia probabilística ML — cualquier dominio)
 
-      C. ML alto + imagen FUERA del dominio (out_of_domain o possibly_out_of_domain)
-         → "Resultado ML no concluyente en imagen externa"  (ML sobre OOD, fiabilidad baja)
-            Nunca afirmamos detección cuando la imagen no se parece al dominio de entrenamiento.
+      C. 0.30 ≤ ML < 0.46
+         → "inconclusive_low_ml"  (señal débil, no concluyente)
 
-      D. ML bajo (cualquier dominio)
-         → "Sin evidencia detectable"  (sin payload + sin señal ML)
+      D. ML < 0.30
+         → "no_stego_evidence"  (sin evidencia detectable)
     """
     # ── Caso A: extracción LSB con integridad — máxima prioridad ────────────
-    # La extracción LSB con SHA-256 válido es evidencia directa: no depende
-    # del dominio del modelo, es matemáticamente verificable.
     if extraction.get("payload_found") and extraction.get("sha256_valid"):
         return {
-            "status":          "payload_found",
-            "title":           "Mensaje oculto encontrado",
-            "summary":         (
+            "status":               "payload_found",
+            "title":                "Mensaje oculto encontrado",
+            "evidence_type":        "Evidencia directa LSB (cabecera + SHA-256)",
+            "summary":              (
                 "Se encontró y validó un payload mediante extracción LSB del sistema "
                 "(cabecera STEGODETECTv1 detectada, SHA-256 verificado). "
                 "Evidencia directa — no depende del modelo ML."
             ),
-            "evidence_source": "lsb_extraction",
-            "reliability":     "high",
-        }
-
-    pred          = ml.get("prediction", "cover")
-    prob          = ml.get("probability", 0.0)
-    thr           = ml.get("threshold") or 0.0404
-    domain_status = applicability.get("domain_status", "out_of_domain")
-    ml_high       = (pred == "stego" or prob >= thr)
-
-    # ── Caso C: ML alto pero imagen fuera de dominio ────────────────────────
-    # IMPORTANTE: este caso se evalúa ANTES que el caso B para que un puntaje
-    # alto en una imagen JPG/wallpaper nunca se reporte como detección concluyente.
-    if ml_high and domain_status in ("out_of_domain", "possibly_out_of_domain"):
-        return {
-            "status":          "ml_suspicious_unverified",
-            "title":           "Resultado ML no concluyente en imagen externa",
-            "summary":         (
-                "El modelo asignó un puntaje alto en una imagen con características "
-                "alejadas del dominio de entrenamiento. Aunque el modelo fue "
-                "fine-tuned con imágenes externas, el puntaje en estas condiciones "
-                "es evidencia probabilística y NO debe interpretarse como detección "
-                "concluyente. Se recomienda validación adicional o análisis sobre "
-                "una versión PNG sin compresión destructiva."
+            "explanation":          (
+                "La extracción LSB del sistema encontró la cabecera STEGODETECTv1 y "
+                "verificó la integridad del payload mediante SHA-256. Esta evidencia es "
+                "matemáticamente verificable y tiene prioridad sobre el puntaje ML."
             ),
-            "evidence_source": "ml_detection_out_of_domain",
-            "reliability":     "low",
+            "evidence_source":      "lsb_extraction",
+            "reliability":          "high",
+            "primary_metric_label": "Certeza de extracción LSB",
+            "primary_metric_value": 100,
+            "ml_evidence_band":     _ml_evidence_band(ml.get("probability", 0.0)),
         }
 
-    # ── Caso B: ML alto e imagen dentro del dominio ─────────────────────────
-    if ml_high and domain_status == "in_domain":
+    prob = ml.get("probability", 0.0) or 0.0
+    thr  = ml.get("threshold") or 0.46
+    band = _ml_evidence_band(prob)
+
+    # ── Caso B: ML ≥ threshold ───────────────────────────────────────────────
+    if prob >= thr:
         return {
-            "status":          "ml_suspicious",
-            "title":           "Posibles patrones compatibles con esteganografía",
-            "summary":         (
-                "El modelo ML asignó un puntaje alto de esteganografía sobre una "
-                "imagen compatible con su dominio de entrenamiento, pero no se "
-                "encontró una cabecera StegoDetect. El contenido podría corresponder "
-                "a otro algoritmo de esteganografía, una técnica con cifrado, o "
-                "una imagen realmente esteganografiada. Se recomienda validación adicional."
+            "status":               "ml_suspicious",
+            "title":                "Posible esteganografía detectada",
+            "evidence_type":        "Evidencia probabilística ML",
+            "summary":              (
+                f"No se encontró un payload recuperable compatible con StegoDetect, "
+                f"pero el modelo ML detectó patrones estadísticos asociados a "
+                f"esteganografía ({prob*100:.1f}% ≥ umbral {thr*100:.1f}%). "
+                f"Este resultado es probabilístico y no prueba por sí solo la "
+                f"existencia de un mensaje extraíble."
             ),
-            "evidence_source": "ml_detection",
-            "reliability":     "medium",
+            "explanation":          (
+                f"El puntaje ML de {prob*100:.1f}% supera el umbral del modelo "
+                f"({thr*100:.1f}%). No se encontró cabecera StegoDetect: el posible "
+                f"payload podría haber sido insertado con otra herramienta, estar "
+                f"cifrado, o tratarse de una falsa alarma estadística."
+            ),
+            "evidence_source":      "ml_detection",
+            "reliability":          "medium",
+            "primary_metric_label": "Puntaje ML de esteganografía",
+            "primary_metric_value": round(prob * 100, 1),
+            "ml_evidence_band":     band,
         }
 
-    # ── Caso D: ML bajo — sin evidencia detectable ──────────────────────────
+    # ── Caso C: 0.30 ≤ ML < threshold — señal débil, no concluyente ─────────
+    if prob >= LOW_EVIDENCE_THRESHOLD:
+        return {
+            "status":               "inconclusive_low_ml",
+            "title":                "Sin evidencia concluyente",
+            "evidence_type":        "Baja sospecha ML bajo el umbral configurado",
+            "summary":              (
+                f"No se encontró payload compatible con StegoDetect. El modelo ML "
+                f"muestra cierta variación estadística ({prob*100:.1f}%), pero no "
+                f"supera el umbral configurado ({thr*100:.1f}%). El resultado es "
+                f"no concluyente."
+            ),
+            "explanation":          (
+                f"El puntaje ML ({prob*100:.1f}%) se encuentra en la banda intermedia "
+                f"(30–{thr*100:.0f}%): hay variación estadística, pero insuficiente "
+                f"para concluir presencia de esteganografía según el threshold calibrado."
+            ),
+            "evidence_source":      "none",
+            "reliability":          "low",
+            "primary_metric_label": "Puntaje ML de esteganografía",
+            "primary_metric_value": round(prob * 100, 1),
+            "ml_evidence_band":     band,
+        }
+
+    # ── Caso D: ML < 0.30 — sin evidencia esteganográfica detectable ─────────
     return {
-        "status":          "no_evidence",
-        "title":           "Sin evidencia detectable",
-        "summary":         (
-            "No se encontró payload compatible con el formato StegoDetect y el "
-            "puntaje ML de esteganografía fue bajo. Esto indica baja evidencia "
-            "detectable dentro del alcance del modelo, pero no descarta técnicas "
-            "externas, cifradas o no compatibles con el sistema."
+        "status":               "no_stego_evidence",
+        "title":                "Imagen sin evidencia esteganográfica detectable",
+        "evidence_type":        "Sin cabecera StegoDetect y puntaje ML bajo",
+        "summary":              (
+            f"No se encontró payload compatible con el formato StegoDetect y el "
+            f"modelo ML obtuvo un puntaje de {prob*100:.1f}%, por debajo del "
+            f"umbral de baja evidencia ({LOW_EVIDENCE_THRESHOLD*100:.0f}%). "
+            f"Según los métodos de StegoDetect, la imagen no presenta evidencia "
+            f"esteganográfica detectable."
         ),
-        "evidence_source": "none",
-        "reliability":     "high" if domain_status == "in_domain" else "medium",
+        "explanation":          (
+            f"El puntaje ML de {prob*100:.1f}% está por debajo del umbral de "
+            f"baja evidencia (30%). No se encontró cabecera StegoDetect. "
+            f"Esto no descarta técnicas externas, cifradas o incompatibles con el sistema."
+        ),
+        "evidence_source":      "none",
+        "reliability":          "high",
+        "primary_metric_label": "Puntaje ML de esteganografía",
+        "primary_metric_value": round(prob * 100, 1),
+        "ml_evidence_band":     band,
     }
 
 

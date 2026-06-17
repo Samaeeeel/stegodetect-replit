@@ -170,30 +170,46 @@ function initAnalyzeTab() {
     const reliability   = fullData.reliability         || {};
     const status        = decision.status || 'no_evidence';
 
-    // ── Configuración visual por status (4 estados) ──────────────────────────
+    // ── Configuración visual por status ──────────────────────────────────────
+    // Cuatro status activos + dos alias para compatibilidad con PDFs viejos.
     const statusCfg = {
+      // Caso A: evidencia LSB directa (cabecera + SHA-256 válido)
       payload_found: {
         badgeCls: 'stego-lsb',
         icon:     'bi-lock-fill',
-        color:    '#7c3aed',                    // lila — evidencia LSB directa
+        color:    '#7c3aed',
       },
+      // Caso B: ML ≥ 0.46 — puntaje supera el threshold
       ml_suspicious: {
         badgeCls: 'stego',
         icon:     'bi-exclamation-triangle-fill',
-        color:    'var(--danger)',              // rojo — sospecha ML en dominio
+        color:    'var(--danger)',
       },
+      // Caso C: 0.30 ≤ ML < 0.46 — señal débil, no concluyente
+      inconclusive_low_ml: {
+        badgeCls: 'unverified',
+        icon:     'bi-question-circle-fill',
+        color:    '#d97706',
+      },
+      // Caso D: ML < 0.30 — sin evidencia esteganográfica detectable
+      no_stego_evidence: {
+        badgeCls: 'cover',
+        icon:     'bi-shield-check-fill',
+        color:    'var(--success)',
+      },
+      // Alias de compatibilidad (status legacy de PDFs anteriores)
       ml_suspicious_unverified: {
         badgeCls: 'unverified',
         icon:     'bi-question-circle-fill',
-        color:    '#d97706',                    // ámbar — no concluyente OOD
+        color:    '#d97706',
       },
       no_evidence: {
         badgeCls: 'cover',
         icon:     'bi-shield-check-fill',
-        color:    'var(--success)',             // verde — sin evidencia
+        color:    'var(--success)',
       },
     };
-    const cfg = statusCfg[status] || statusCfg.no_evidence;
+    const cfg = statusCfg[status] || statusCfg.no_stego_evidence;
 
     // ── Badge + título ────────────────────────────────────────────────────────
     document.getElementById('result-badge').className =
@@ -206,11 +222,11 @@ function initAnalyzeTab() {
 
     document.getElementById('result-filename').textContent = mlData.filename;
 
-    // ── Métrica principal: cambia según haya payload LSB validado ────────────
-    // Caso A (payload_found+sha256_valid): la métrica principal es la certeza
-    // de extracción LSB (100%), NO el puntaje ML. El score ML se mueve a un
-    // bloque secundario para no confundir al usuario.
-    // Caso B/C/D: comportamiento clásico — puntaje ML como métrica principal.
+    // ── Métrica principal: cambia según el status ────────────────────────────
+    // payload_found     → Certeza de extracción LSB = 100% (ML es secundario)
+    // ml_suspicious     → Puntaje ML (supera threshold)
+    // inconclusive_low_ml → Puntaje ML (señal débil)
+    // no_stego_evidence → Puntaje ML (bajo)
     const prob       = mlData.probability_percent;
     const probBar    = document.getElementById('prob-bar');
     const probText   = document.getElementById('prob-text');
@@ -222,31 +238,33 @@ function initAnalyzeTab() {
     const mlSecScore = document.getElementById('ml-secondary-score');
     const sha_ok     = !!extraction.sha256_valid;
 
+    // El label de la métrica principal viene del backend cuando está disponible
+    const backendLabel = decision.primary_metric_label || null;
+    const backendValue = decision.primary_metric_value != null ? decision.primary_metric_value : null;
+
     if (status === 'payload_found' && sha_ok) {
-      // Métrica principal = Certeza de extracción LSB 100%
-      primaryLbl.textContent = 'Certeza de extracción LSB';
+      // Caso A: evidencia directa LSB → métrica = certeza 100%
+      primaryLbl.textContent = backendLabel || 'Certeza de extracción LSB';
       probBar.style.width    = '100%';
       probBar.className      = 'progress-bar bg-success';
       probText.textContent   = '100%';
 
-      // Confiabilidad fija — payload validado por cabecera + SHA-256
       relLbl.textContent = 'Confiabilidad';
       cb.className       = 'badge bg-success';
       cb.textContent     = 'Alta — payload validado';
       cb.title           = 'Cabecera STEGODETECTv1 detectada y SHA-256 verificado';
 
-      // Ocultar la fila de compatibilidad de dominio — irrelevante aquí
       domainRow.style.display = 'none';
 
-      // Mostrar el ML como dato secundario (no protagonista)
       mlSecBlock.style.display = 'block';
       mlSecScore.textContent   = `${prob}%`;
     } else {
-      // Comportamiento clásico para los otros 3 estados
-      primaryLbl.textContent = 'Puntaje ML de esteganografía';
-      probBar.style.width    = `${prob}%`;
+      // Casos B/C/D: métrica principal = puntaje ML
+      primaryLbl.textContent = backendLabel || 'Puntaje ML de esteganografía';
+      const displayValue = backendValue != null ? backendValue : prob;
+      probBar.style.width    = `${displayValue}%`;
       probBar.className      = `progress-bar ${mlData.prediction}`;
-      probText.textContent   = `${prob}%`;
+      probText.textContent   = `${displayValue}%`;
 
       relLbl.textContent = 'Fiabilidad de interpretación';
       const relMap = {
@@ -272,18 +290,41 @@ function initAnalyzeTab() {
       mlSecBlock.style.display = 'none';
     }
 
+    // ── Tipo de evidencia (nuevo campo del backend) ────────────────────────
+    const evidenceTypeEl = document.getElementById('evidence-type-text');
+    if (evidenceTypeEl && decision.evidence_type) {
+      evidenceTypeEl.textContent = decision.evidence_type;
+      evidenceTypeEl.parentElement.style.display = '';
+    } else if (evidenceTypeEl) {
+      evidenceTypeEl.parentElement.style.display = 'none';
+    }
+
+    // ── Banda de evidencia ML ──────────────────────────────────────────────
+    const mlBandEl = document.getElementById('ml-band-badge');
+    if (mlBandEl) {
+      const bandMap = {
+        low:          ['bg-success text-white', 'Banda ML: baja (<30%)'],
+        intermediate: ['bg-warning text-dark',  'Banda ML: intermedia (30–46%)'],
+        suspicious:   ['bg-danger text-white',   'Banda ML: sospechosa (≥46%)'],
+      };
+      const band = decision.ml_evidence_band || 'low';
+      const [bandCls, bandLbl] = bandMap[band] || ['bg-secondary', band];
+      mlBandEl.className   = `badge ${bandCls}`;
+      mlBandEl.textContent = bandLbl;
+      mlBandEl.style.display = '';
+    }
+
     // ── Explicación integrada (honesta — sin "0% probabilidad que no…") ─────
-    // En payload_found usamos un texto explícito que prioriza la extracción
-    // LSB; en los demás casos respetamos el summary del backend.
     const explanationEl = document.getElementById('explanation-text');
+    // Primero intentamos el campo `explanation` (más detallado), luego `summary`
+    const explanationText = decision.explanation || decision.summary || '';
     if (status === 'payload_found' && sha_ok) {
-      explanationEl.textContent =
+      explanationEl.textContent = explanationText ||
         'Se encontró y validó información oculta mediante extracción LSB del sistema. ' +
         'La presencia del payload fue confirmada mediante cabecera STEGODETECTv1 y ' +
-        'verificación SHA-256. Esta evidencia directa tiene prioridad sobre el puntaje ' +
-        'del modelo ML.';
+        'verificación SHA-256. Esta evidencia directa tiene prioridad sobre el puntaje ML.';
     } else {
-      explanationEl.textContent = decision.summary || '';
+      explanationEl.textContent = explanationText;
     }
 
     document.getElementById('mock-result-warning').style.display =
@@ -452,30 +493,41 @@ function initEmbedTab() {
   }));
 
   // ── Capacidad al seleccionar imagen ──────────────────────────────────────
-  coverInput.addEventListener('change', async () => {
-    checkEmbedReady();
+  // Muestra capacidad teórica de la imagen Y límite del sistema (2 MB).
+  // Recomendación de modo: 1 bit/canal es el más imperceptible (modo estándar),
+  // 2–4 bits/canal aumenta capacidad pero reduce la invisibilidad.
+  const SYSTEM_LIMIT_BYTES = 2 * 1024 * 1024; // MAX_PAYLOAD_BYTES del backend
+
+  function updateCapacityInfo() {
     const file = coverInput.files[0];
     if (!file) { capInfo.style.display = 'none'; return; }
-    try {
-      const fd = new FormData();
-      fd.append('cover_image', file);
-      fd.append('bits_per_channel', bitsSelect.value);
-      fd.append('channels', chSelect.value);
-      // Use embed/text with tiny payload just to get capacity - actually call calculate separately
-      // We'll show dimensions from the file instead
-      const img = new Image();
-      img.onload = () => {
-        const ch = chSelect.value.length;
-        const bits = parseInt(bitsSelect.value);
-        const usable = Math.floor((img.width * img.height * ch * bits) / 8) - 217;
-        capInfo.innerHTML =
-          `<i class="bi bi-info-circle me-1"></i>Imagen ${img.width}×${img.height}px · ` +
-          `Capacidad útil: <strong>~${formatBytes(Math.max(0, usable))}</strong>`;
-        capInfo.style.display = 'block';
-      };
-      img.src = URL.createObjectURL(file);
-    } catch {}
-  });
+    const img = new Image();
+    img.onload = () => {
+      const ch        = chSelect.value.length;
+      const bits      = parseInt(bitsSelect.value);
+      const HEADER_OH = 217; // overhead cabecera STEGODETECTv1
+      const theoretical = Math.floor((img.width * img.height * ch * bits) / 8);
+      const usable      = Math.max(0, theoretical - HEADER_OH);
+      const effective   = Math.min(usable, SYSTEM_LIMIT_BYTES);
+
+      const modeHint = bits === 1
+        ? '<span class="text-success fw-semibold">Modo estándar (1 bit/canal)</span> — recomendado para máxima imperceptibilidad'
+        : `<span class="text-warning fw-semibold">Modo avanzado (${bits} bits/canal)</span> — mayor capacidad, menor imperceptibilidad`;
+
+      capInfo.innerHTML =
+        `<i class="bi bi-info-circle me-1"></i>` +
+        `Imagen <strong>${img.width}×${img.height}px</strong> · ` +
+        `Capacidad teórica: <strong>${formatBytes(theoretical)}</strong> · ` +
+        `Límite sistema: <strong>${formatBytes(SYSTEM_LIMIT_BYTES)}</strong> · ` +
+        `Disponible: <strong>${formatBytes(effective)}</strong><br>` +
+        `<small class="text-muted">${modeHint}</small>`;
+      capInfo.style.display = 'block';
+      URL.revokeObjectURL(img.src);
+    };
+    img.src = URL.createObjectURL(file);
+  }
+
+  coverInput.addEventListener('change', () => { checkEmbedReady(); updateCapacityInfo(); });
 
   // ── Tamaño del mensaje ────────────────────────────────────────────────────
   msgArea.addEventListener('input', () => {
@@ -485,8 +537,8 @@ function initEmbedTab() {
   });
 
   payloadInput.addEventListener('change', checkEmbedReady);
-  bitsSelect.addEventListener('change', () => { coverInput.dispatchEvent(new Event('change')); });
-  chSelect.addEventListener('change', () => { coverInput.dispatchEvent(new Event('change')); });
+  bitsSelect.addEventListener('change', () => { checkEmbedReady(); updateCapacityInfo(); });
+  chSelect.addEventListener('change',   () => { checkEmbedReady(); updateCapacityInfo(); });
 
   function checkEmbedReady() {
     const hasCover   = coverInput.files.length > 0;
@@ -559,6 +611,37 @@ function initEmbedTab() {
       window.open(data.csv_url, '_blank');
     document.getElementById('dl-map-btn').onclick = () =>
       window.open(data.map_url, '_blank');
+
+    // Densidad de inserción (métricas de trazabilidad forense)
+    const density = data.insertion_density || {};
+    const densityWrap = document.getElementById('embed-density-wrap');
+    if (densityWrap && density.total_pixels_image) {
+      densityWrap.style.display = 'block';
+      densityWrap.innerHTML = `
+        <div class="small fw-semibold text-muted mb-1">Densidad de inserción LSB</div>
+        <div class="row g-2">
+          <div class="col-6"><div class="stat-chip p-2 rounded text-center">
+            <div class="small text-muted">Píxeles usados</div>
+            <div class="fw-bold small">${(density.used_pixels||0).toLocaleString()}</div>
+            <div class="small text-muted">${density.used_pixel_ratio||0}% del total</div>
+          </div></div>
+          <div class="col-6"><div class="stat-chip p-2 rounded text-center">
+            <div class="small text-muted">Píxeles modificados</div>
+            <div class="fw-bold small">${(density.modified_pixels||0).toLocaleString()}</div>
+            <div class="small text-muted">${density.modified_pixel_ratio||0}% del total</div>
+          </div></div>
+          <div class="col-6"><div class="stat-chip p-2 rounded text-center">
+            <div class="small text-muted">Canales modificados</div>
+            <div class="fw-bold small">${(density.modified_channel_values||0).toLocaleString()}</div>
+          </div></div>
+          <div class="col-6"><div class="stat-chip p-2 rounded text-center">
+            <div class="small text-muted">Bits embebidos</div>
+            <div class="fw-bold small">${(density.embedded_bits||0).toLocaleString()}</div>
+          </div></div>
+        </div>`;
+    } else if (densityWrap) {
+      densityWrap.style.display = 'none';
+    }
 
     // Resumen técnico
     const tech = data.technical || {};
@@ -730,12 +813,19 @@ function formatBytes(bytes) {
 }
 
 function buildPayloadMetaHTML(ext) {
+  const bpc     = ext.bits_per_channel_detected != null ? ext.bits_per_channel_detected : (ext.bits_per_channel || 'N/D');
+  const chs     = Array.isArray(ext.channels_detected) && ext.channels_detected.length
+                    ? ext.channels_detected.join(', ')
+                    : (Array.isArray(ext.channels) && ext.channels.length ? ext.channels.join(', ') : 'N/D');
+  const alg     = ext.algorithm_detected || ext.algorithm || 'N/D';
   return `
     <div class="mb-1"><strong>Tipo:</strong> ${ext.payload_type}</div>
     <div class="mb-1"><strong>Nombre:</strong> ${ext.filename || '(sin nombre)'}</div>
     <div class="mb-1"><strong>Tamaño:</strong> ${formatBytes(ext.payload_size||0)}</div>
     <div class="mb-1"><strong>MIME:</strong> ${ext.mime_type || 'N/D'}</div>
-    <div class="mb-1"><strong>Algoritmo:</strong> ${ext.algorithm || 'N/D'}</div>
+    <div class="mb-1"><strong>Algoritmo detectado:</strong> ${alg}</div>
+    <div class="mb-1"><strong>Bits/canal detectados:</strong> ${bpc}</div>
+    <div class="mb-1"><strong>Canales detectados:</strong> ${chs}</div>
     <div class="mb-0"><strong>SHA-256:</strong>
       <span class="badge ${ext.sha256_valid ? 'bg-success' : 'bg-danger'} ms-1">
         ${ext.sha256_valid ? 'Válido' : 'No coincide'}

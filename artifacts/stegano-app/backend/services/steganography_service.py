@@ -247,6 +247,32 @@ class LSBSteganographyService:
             ),
         }
 
+        # ── Métricas de densidad de inserción ──────────────────────────────────
+        # Calculamos cuántos píxeles/canales fueron efectivamente modificados
+        # (valor del canal cambió). Útil para el análisis forense de tesis.
+        modified_px_count = 0
+        modified_ch_count = 0
+        for i in range(min(total_pixels_used, len(orig_pixels))):
+            orig_px = orig_pixels[i]
+            new_px  = new_pixels[i]
+            px_changed = False
+            for ch_idx in channel_indices:
+                if orig_px[ch_idx] != new_px[ch_idx]:
+                    modified_ch_count += 1
+                    px_changed = True
+            if px_changed:
+                modified_px_count += 1
+
+        insertion_density = {
+            "used_pixels":             total_pixels_used,
+            "modified_pixels":         modified_px_count,
+            "modified_channel_values": modified_ch_count,
+            "total_pixels_image":      w * h,
+            "used_pixel_ratio":        round(total_pixels_used / (w * h) * 100, 4),
+            "modified_pixel_ratio":    round(modified_px_count / (w * h) * 100, 4),
+            "embedded_bits":           total_bits,
+        }
+
         return {
             "artifact_id":       artifact_id,
             "stego_filename":    stego_filename,
@@ -261,8 +287,9 @@ class LSBSteganographyService:
                 "sha256":        sha256,
                 "mime_type":     mime_type or "",
             },
-            "positions_summary": positions_summary,
-            "first_positions":   all_positions[:100],
+            "positions_summary":  positions_summary,
+            "insertion_density":  insertion_density,
+            "first_positions":    all_positions[:100],
             "technical": {
                 "bits_per_channel":      bits_per_channel,
                 "channels":              list(channels),
@@ -446,18 +473,22 @@ class LSBSteganographyService:
                             (len(channels) * bits_per_channel)
 
         result: Dict[str, Any] = {
-            "payload_found":      True,
-            "payload_type":       header.get("payload_type", "binary"),
-            "filename":           header.get("filename", ""),
-            "mime_type":          header.get("mime_type", ""),
-            "payload_size":       payload_size,
-            "sha256_header":      header.get("sha256", ""),
-            "sha256_actual":      actual_sha256,
-            "sha256_valid":       sha256_valid,
-            "algorithm":          header.get("algorithm", ""),
-            "bits_per_channel":   header.get("bits_per_channel", 1),
-            "channels":           header.get("channels", []),
-            "created_by":         header.get("created_by", ""),
+            "payload_found":            True,
+            "payload_type":             header.get("payload_type", "binary"),
+            "filename":                 header.get("filename", ""),
+            "mime_type":                header.get("mime_type", ""),
+            "payload_size":             payload_size,
+            "sha256_header":            header.get("sha256", ""),
+            "sha256_actual":            actual_sha256,
+            "sha256_valid":             sha256_valid,
+            "algorithm":                header.get("algorithm", ""),
+            "algorithm_detected":       header.get("algorithm", "LSB STEGODETECTv1"),
+            "header_detected":          True,
+            "bits_per_channel":         header.get("bits_per_channel", 1),
+            "bits_per_channel_detected": header.get("bits_per_channel", 1),
+            "channels":                 header.get("channels", []),
+            "channels_detected":        header.get("channels", []),
+            "created_by":               header.get("created_by", ""),
             "lsb_analysis":       lsb_analysis,
             "positions_summary":  {
                 "first_pixel":        {"x": 0, "y": 0},

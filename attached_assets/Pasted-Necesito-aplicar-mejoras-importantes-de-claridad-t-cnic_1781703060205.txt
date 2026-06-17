@@ -1,0 +1,395 @@
+Necesito aplicar mejoras importantes de claridad técnica, trazabilidad y presentación en StegoDetect.
+
+IMPORTANTE:
+- No reconstruyas toda la aplicación.
+- No cambies el modelo ML entrenado.
+- No cambies el checkpoint actual.
+- No cambies el threshold actual 0.46.
+- No cambies la lógica principal de inserción/extracción LSB si ya funciona.
+- No rompas /stego/embed/text, /stego/embed/file, /stego/extract, /stego/full-analysis, /analyze ni /health.
+- Antes de modificar, inspecciona backend, frontend, report_service, steganography_service, model_service y cualquier archivo relacionado.
+- Primero haz un plan breve de cambios y luego aplica solo parches necesarios.
+
+Estado actual correcto del sistema:
+- model_version: finetuned_external_domain_v1
+- checkpoint: srnet_lite_best_state_dict.pt
+- threshold: 0.46
+- mock_mode: False
+- La decisión final debe seguir priorizando:
+  1. Payload StegoDetect encontrado con SHA-256 válido
+  2. Sospecha ML probabilística
+  3. Imagen sin evidencia esteganográfica detectable / sin evidencia compatible
+
+Objetivo general:
+Mejorar la forma en que el sistema explica los resultados para que no parezca un simple detector "sí/no", sino un sistema técnico de esteganografía y estegoanálisis que distingue evidencia directa, evidencia probabilística, capacidad, densidad de inserción y límites del prototipo.
+
+CAMBIOS NECESARIOS
+
+1. Separar claramente los tipos de evidencia en la respuesta y en la interfaz
+
+Actualmente puede confundirse:
+- "mensaje oculto encontrado"
+- "posible mensaje oculto"
+- "sin mensaje oculto"
+- "sin evidencia detectable"
+
+Quiero que el sistema use esta lógica textual:
+
+A) Si extraction.payload_found = true y sha256_valid = true:
+   Estado: "Mensaje oculto encontrado"
+   Tipo de evidencia: "Evidencia directa LSB"
+   Explicación:
+   "Se encontró un payload compatible con el formato StegoDetect mediante cabecera STEGODETECTv1 y validación SHA-256. La extracción LSB tiene prioridad sobre el resultado ML."
+
+B) Si no hay payload compatible, pero el modelo ML supera el threshold configurado 0.46:
+   Estado: "Posible esteganografía detectada"
+   Tipo de evidencia: "Evidencia probabilística ML"
+   Explicación:
+   "No se encontró un payload recuperable compatible con StegoDetect, pero el modelo ML detectó patrones estadísticos asociados a esteganografía. Este resultado es probabilístico y no prueba por sí solo la existencia de un mensaje extraíble."
+
+C) Si no hay payload compatible y el score ML es menor a 30%:
+   Estado: "Imagen sin evidencia esteganográfica detectable"
+   Tipo de evidencia: "Sin cabecera StegoDetect y baja evidencia ML"
+   Explicación:
+   "No se encontró payload compatible con el formato StegoDetect y el modelo ML obtuvo un puntaje bajo de evidencia esteganográfica. Según los métodos aplicados por el sistema, la imagen se considera sin evidencia esteganográfica detectable."
+
+D) Si no hay payload compatible y el score ML está entre 30% y el threshold 0.46:
+   Estado: "Sin evidencia concluyente"
+   Tipo de evidencia: "Baja sospecha ML bajo el umbral configurado"
+   Explicación:
+   "No se encontró payload compatible con StegoDetect. El modelo ML muestra cierta variación estadística, pero no supera el umbral configurado para clasificar la imagen como sospechosa."
+
+Evitar frases absolutas como:
+- "No contiene ningún mensaje oculto"
+- "La imagen está 100% limpia"
+- "0% de probabilidad de mensaje oculto"
+
+Usar en su lugar:
+- "Imagen sin evidencia esteganográfica detectable"
+- "No se encontró payload compatible"
+- "El resultado ML no superó el umbral configurado"
+- "Según los métodos aplicados por StegoDetect"
+
+2. Mejorar la sección de "posiciones usadas"
+
+Actualmente dice algo como "posiciones usadas". Quiero que se vuelva más técnico y claro.
+
+Cambiar o complementar con estas métricas:
+
+- Píxeles utilizados para inserción
+- Valores de canal utilizados
+- Bits insertados
+- Píxeles realmente modificados
+- Valores de canal realmente modificados
+- Porcentaje de imagen utilizado
+- Porcentaje real de modificación
+- Densidad de inserción
+
+Ejemplo de explicación que debe aparecer en frontend o detalles técnicos:
+
+"Los píxeles utilizados representan las posiciones necesarias para almacenar los bits del payload. Sin embargo, no todas las posiciones utilizadas modifican visualmente la imagen, ya que si el bit menos significativo ya coincidía con el bit a insertar, el valor del canal no cambia."
+
+Si actualmente solo existe positions_used, mantenerlo, pero agregar nuevas métricas cuando sea posible:
+- used_pixels
+- used_channel_values
+- embedded_bits
+- modified_channel_values
+- modified_pixels
+- used_pixel_ratio
+- modified_pixel_ratio
+
+Si no se puede calcular alguna métrica sin cambiar demasiado la lógica, devolver null o "no disponible", pero no romper el sistema.
+
+3. Mejorar la pantalla de capacidad
+
+Actualmente el sistema puede mostrar:
+"Capacidad útil: 21.67 MB"
+pero bloquear payloads mayores a 2 MB.
+
+Eso confunde al usuario. Quiero que la interfaz y el backend separen claramente:
+
+- Capacidad teórica de la imagen
+- Límite configurado por StegoDetect
+- Tamaño del payload seleccionado
+- Estado de compatibilidad
+
+Ejemplo:
+
+Capacidad teórica de la imagen: 21.67 MB
+Límite configurado por StegoDetect: 2.00 MB
+Payload seleccionado: 3.77 MB
+Estado: excede el límite configurado del prototipo
+
+El mensaje de error debe decir:
+
+"La imagen tiene capacidad suficiente, pero el payload excede el límite configurado por StegoDetect para evitar sobrecarga de memoria, tiempos de espera elevados o bloqueo del servidor."
+
+Buscar en el backend constantes como:
+- MAX_PAYLOAD_SIZE
+- MAX_PAYLOAD_BYTES
+- MAX_UPLOAD_SIZE
+- 2097152
+- 2 * 1024 * 1024
+
+No necesariamente aumentes el límite. Primero solo mejora el mensaje y la visualización. Si el límite se mantiene en 2 MB, debe quedar explícito.
+
+4. Agregar modo recomendado y modo avanzado en la interfaz de inserción
+
+En la pestaña de ocultar información, agregar ayuda visual o texto corto:
+
+Modo recomendado:
+- Bits por canal: 1
+- Canales: RGB
+- Menor distorsión visual
+- Menor huella estadística
+- Recomendado para pruebas forenses y tesis
+
+Modo avanzado:
+- Bits por canal: 2, 3 o 4
+- Mayor capacidad
+- Mayor alteración estadística
+- Más fácil de detectar por ML o análisis LSB
+- Útil para demostrar payloads grandes
+
+No eliminar las opciones avanzadas. Solo explicarlas mejor.
+
+5. Asegurar que el header técnico incluya o reporte los parámetros de inserción
+
+Verifica que el payload StegoDetect guarde o permita reportar:
+
+- versión de cabecera: STEGODETECTv1
+- tipo de payload
+- tamaño del payload
+- SHA-256
+- bits por canal
+- canales usados
+- algoritmo, por ejemplo LSB-1bit-RGB o LSB-2bit-RGB
+- posiciones usadas o cantidad de bits insertados
+
+Si ya se guarda, mostrarlo mejor.
+Si no se guarda completamente, agregarlo de forma compatible sin romper imágenes anteriores. Es decir:
+- mantener compatibilidad con payloads antiguos;
+- si un campo no existe en una imagen antigua, mostrar "no disponible";
+- no cambiar de forma destructiva el extractor.
+
+6. Mejorar el reporte PDF integrado
+
+El PDF debe tener secciones claras:
+
+1. Decisión general del sistema
+2. Evidencia directa LSB
+3. Resultado ML probabilístico
+4. Parámetros de inserción detectados
+5. Capacidad, densidad y posiciones
+6. Limitaciones del análisis
+7. Conclusión técnica
+
+Reglas del PDF:
+
+- Si payload_found + sha256_valid:
+  El PDF debe destacar "Mensaje oculto encontrado".
+  Debe decir que la evidencia principal es LSB + SHA-256.
+  El ML debe aparecer como "resultado complementario".
+
+- Si no hay payload compatible pero el ML supera threshold 0.46:
+  El PDF debe decir "Posible esteganografía detectada por ML".
+  Debe aclarar que no se recuperó payload compatible.
+
+- Si no hay payload compatible y el ML es menor a 30%:
+  El PDF debe decir "Imagen sin evidencia esteganográfica detectable".
+  Debe aclarar que no se encontró cabecera StegoDetect y que el puntaje ML fue bajo.
+  No debe decir "0% de probabilidad de mensaje oculto".
+
+- Si no hay payload compatible y el ML está entre 30% y 0.46:
+  El PDF debe decir "Sin evidencia concluyente".
+  Debe aclarar que el puntaje ML no superó el umbral configurado.
+
+- El PDF nunca debe afirmar de forma absoluta:
+  "La imagen está 100% limpia"
+  "No contiene ningún mensaje oculto"
+  "Es imposible que tenga esteganografía"
+
+Usar redacciones como:
+"según los métodos aplicados por StegoDetect"
+"sin evidencia esteganográfica detectable"
+"no se encontró payload compatible con este sistema"
+
+7. Mejorar el JSON de /stego/full-analysis
+
+Agregar o asegurar una estructura clara como esta:
+
+final_decision: {
+  status,
+  title,
+  evidence_source,
+  evidence_type,
+  confidence_label,
+  explanation,
+  primary_metric_label,
+  primary_metric_value,
+  ml_evidence_band
+}
+
+Donde ml_evidence_band puede ser:
+- "low" para score < 0.30
+- "intermediate" para 0.30 <= score < 0.46
+- "suspicious" para score >= 0.46
+
+payload_extraction: {
+  payload_found,
+  sha256_valid,
+  header_detected,
+  payload_type,
+  payload_size_bytes,
+  message_text,
+  bits_per_channel_detected,
+  channels_detected,
+  algorithm_detected
+}
+
+capacity_analysis: {
+  image_width,
+  image_height,
+  channels_available,
+  bits_per_channel_selected,
+  theoretical_capacity_bytes,
+  system_payload_limit_bytes,
+  selected_payload_size_bytes,
+  capacity_ok,
+  system_limit_ok
+}
+
+insertion_density: {
+  used_pixels,
+  used_channel_values,
+  embedded_bits,
+  modified_pixels,
+  modified_channel_values,
+  used_pixel_ratio,
+  modified_pixel_ratio
+}
+
+ml_detection: {
+  model_version,
+  checkpoint,
+  threshold,
+  low_evidence_threshold: 0.30,
+  score,
+  score_pct,
+  prediction,
+  probabilistic_explanation
+}
+
+No es obligatorio que todos los valores estén siempre llenos, pero la estructura debe ser consistente.
+
+8. Mantener la prioridad correcta de decisión
+
+No permitir que el ML sobrescriba la evidencia LSB.
+
+Regla obligatoria:
+
+Si payload_found = true y sha256_valid = true:
+    final_decision.status = "payload_found"
+    final_decision.title = "Mensaje oculto encontrado"
+    primary_metric_label = "Certeza de extracción LSB"
+    primary_metric_value = 100
+
+Aunque el ML diga 0%, 20%, 70% o 100%, no debe cambiar la decisión final.
+
+Si no hay payload:
+    usar ML solamente como evidencia probabilística.
+
+Si score ML < 30%:
+    final_decision.status = "no_stego_evidence"
+    final_decision.title = "Imagen sin evidencia esteganográfica detectable"
+
+Si 30% <= score ML < 46%:
+    final_decision.status = "inconclusive_low_ml"
+    final_decision.title = "Sin evidencia concluyente"
+
+Si score ML >= 46%:
+    final_decision.status = "ml_suspicious"
+    final_decision.title = "Posible esteganografía detectada"
+
+9. Mejorar textos de ayuda para la tesis
+
+Agregar en la guía o interfaz una explicación breve:
+
+"StegoDetect diferencia entre evidencia directa y evidencia probabilística. La evidencia directa se obtiene cuando el sistema recupera un payload con cabecera STEGODETECTv1 y hash SHA-256 válido. La evidencia probabilística proviene del modelo ResidualSRNetLite fine-tuned con BOSSBase e imágenes externas, y debe interpretarse como sospecha estadística, no como prueba absoluta."
+
+También agregar:
+
+"Cuando el modelo obtiene un puntaje bajo, por ejemplo menor al 30%, y no existe cabecera StegoDetect, el sistema presenta la imagen como sin evidencia esteganográfica detectable según los métodos aplicados."
+
+También agregar:
+
+"El sistema trabaja preferentemente con PNG. Formatos con compresión con pérdida, como JPG, pueden destruir o alterar los bits menos significativos."
+
+10. Pruebas obligatorias
+
+Después de aplicar los cambios, ejecutar estas pruebas:
+
+A) Texto con 1 bit RGB
+- Insertar texto "Papa"
+- Analizar la imagen generada
+- Debe salir "Mensaje oculto encontrado"
+- SHA-256 válido
+- Certeza LSB 100%
+- Algoritmo detectado LSB-1bit-RGB
+
+B) PDF con 2 bits RGB
+- Insertar PDF pequeño
+- Analizar la imagen generada
+- Debe salir "Mensaje oculto encontrado"
+- payload_type pdf
+- bits_detected = 2
+- channels_detected = RGB
+- SHA-256 válido
+
+C) Imagen limpia externa con ML < 30%
+- Analizar una imagen normal sin payload
+- No debe inventar payload
+- Debe decir "Imagen sin evidencia esteganográfica detectable"
+- Debe indicar que no se encontró cabecera StegoDetect
+- Debe indicar que el ML está en banda baja de evidencia
+
+D) Imagen sin payload con ML entre 30% y 46%
+- No debe inventar payload
+- Debe decir "Sin evidencia concluyente"
+- Debe indicar que el score ML no supera el threshold 0.46
+
+E) Imagen sin payload con ML >= 46%
+- No debe inventar payload
+- Debe decir "Posible esteganografía detectada"
+- Debe aclarar que es evidencia probabilística ML y no payload recuperado
+
+F) Payload mayor a 2 MB
+- Intentar insertar archivo mayor al límite
+- Debe mostrar mensaje claro:
+  capacidad teórica de imagen,
+  límite configurado del sistema,
+  tamaño del payload,
+  razón del bloqueo
+
+G) /health
+Debe mostrar:
+- mock_mode = false
+- model_version = finetuned_external_domain_v1
+- checkpoint = srnet_lite_best_state_dict.pt
+- threshold = 0.46
+
+11. Entrega final
+
+Al final dame un resumen con:
+
+- archivos modificados
+- funciones modificadas
+- cambios en frontend
+- cambios en backend
+- cambios en PDF
+- si se modificó o no la lógica LSB
+- si se modificó o no el modelo ML
+- resultados de las pruebas A, B, C, D, E, F y G
+- captura o descripción de cómo se ve ahora la capacidad:
+  capacidad teórica vs límite del sistema
+- confirmación de que /health mantiene threshold 0.46

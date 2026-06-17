@@ -201,6 +201,15 @@
                   <span class="small text-muted">Threshold del modelo</span>
                   <span id="threshold-val" class="badge bg-secondary"></span>
                 </div>
+                <!-- Tipo de evidencia + banda ML -->
+                <div class="d-flex justify-content-between align-items-center mb-2" id="evidence-type-row">
+                  <span class="small text-muted">Tipo de evidencia</span>
+                  <span id="evidence-type-text" class="small fw-semibold text-end" style="max-width:60%"></span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                  <span class="small text-muted">Banda de evidencia ML</span>
+                  <span id="ml-band-badge" class="badge bg-secondary"></span>
+                </div>
                 <!-- Explicación -->
                 <div class="explanation-box p-3 rounded mb-3">
                   <p id="explanation-text" class="mb-0 small"></p>
@@ -344,9 +353,15 @@
                     <div class="col-6">
                       <label class="form-label small">Bits por canal</label>
                       <select id="embed-bits" class="form-select form-select-sm">
-                        <option value="1" selected>1 bit (recomendado)</option>
-                        <option value="2">2 bits (más capacidad)</option>
+                        <option value="1" selected>1 bit — Estándar ✓</option>
+                        <option value="2">2 bits — Avanzado</option>
+                        <option value="3">3 bits — Avanzado</option>
+                        <option value="4">4 bits — Avanzado</option>
                       </select>
+                      <div class="small text-muted mt-1">
+                        <i class="bi bi-info-circle me-1"></i>1 bit: máxima imperceptibilidad.
+                        2–4 bits: más capacidad, mayor detección ML.
+                      </div>
                     </div>
                     <div class="col-6">
                       <label class="form-label small">Canales</label>
@@ -416,6 +431,9 @@
                     </button>
                   </div>
                 </div>
+
+                <!-- Densidad de inserción LSB (métricas forenses) -->
+                <div id="embed-density-wrap" class="mb-3" style="display:none;"></div>
 
                 <!-- Resumen técnico -->
                 <div id="embed-tech-summary" class="tech-box p-3 small"></div>
@@ -579,6 +597,34 @@
               <p class="small text-muted">El estegoanálisis es la disciplina opuesta: busca detectar si una imagen
               (u otro medio) contiene información oculta. Este sistema implementa estegoanálisis
               estadístico (análisis de distribución LSB) y basado en Machine Learning (SRNet-lite).</p>
+
+              <h6 class="fw-semibold mt-3">Árbol de decisión del sistema</h6>
+              <p class="small text-muted mb-1">El resultado del análisis integrado sigue cuatro casos en orden de prioridad:</p>
+              <div class="info-formula p-3 rounded mb-2 small">
+                <div class="mb-1"><span class="badge bg-purple text-white me-2" style="background:#7c3aed;">A</span>
+                  <strong>Mensaje oculto encontrado</strong> (<code>payload_found</code>) —
+                  La extracción LSB detectó la cabecera STEGODETECTv1 y SHA-256 válido.
+                  Evidencia directa, matemáticamente verificable. Prioridad máxima.
+                </div>
+                <div class="mb-1"><span class="badge bg-danger me-2">B</span>
+                  <strong>Posible esteganografía detectada</strong> (<code>ml_suspicious</code>) —
+                  Puntaje ML ≥ 0.46 (threshold calibrado). Sin payload StegoDetect recuperable.
+                  Evidencia probabilística.
+                </div>
+                <div class="mb-1"><span class="badge bg-warning text-dark me-2">C</span>
+                  <strong>Sin evidencia concluyente</strong> (<code>inconclusive_low_ml</code>) —
+                  Puntaje ML entre 30% y 46%: señal débil, bajo el threshold. No concluyente.
+                </div>
+                <div><span class="badge bg-success me-2">D</span>
+                  <strong>Sin evidencia esteganográfica</strong> (<code>no_stego_evidence</code>) —
+                  Puntaje ML &lt; 30% y sin cabecera StegoDetect. Mínima evidencia según los métodos aplicados.
+                </div>
+              </div>
+              <p class="small text-muted">
+                <i class="bi bi-exclamation-triangle me-1 text-warning"></i>
+                El modelo ML fue fine-tuned con BOSSBase + dataset externo (threshold 0.46).
+                En todos los casos el resultado es <strong>evidencia técnica, no prueba legal</strong>.
+              </p>
 
               <h6 class="fw-semibold mt-3">Técnica LSB (Least Significant Bit)</h6>
               <p class="small text-muted">En una imagen de 8 bits por canal, el bit menos significativo (LSB) de cada

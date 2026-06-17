@@ -1,0 +1,3 @@
+- [Decision logic 4-status](decision-logic-4status.md) — _build_final_decision usa bandas ML (no dominio): payload_found / ml_suspicious / inconclusive_low_ml / no_stego_evidence.
+- [Insertion density metrics](insertion-density-metrics.md) — embed_payload computa modified_pixels/modified_channel_values en post-loop; expuesto en ambos endpoints embed/text y embed/file.
+- [Stego artifacts path](stego-artifacts-path.md) — STEGO_ARTIFACTS_DIR = BASE_DIR/backend/storage/stego_artifacts, NOT stegano-app/stego_artifacts.
