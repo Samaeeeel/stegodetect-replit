@@ -353,14 +353,13 @@
                     <div class="col-6">
                       <label class="form-label small">Bits por canal</label>
                       <select id="embed-bits" class="form-select form-select-sm">
-                        <option value="1" selected>1 bit — Estándar ✓</option>
-                        <option value="2">2 bits — Avanzado</option>
+                        <option value="1" selected>1 bit — Estándar</option>
+                        <option value="2">2 bits — Mayor capacidad</option>
                         <option value="3">3 bits — Avanzado</option>
                         <option value="4">4 bits — Avanzado</option>
                       </select>
                       <div class="small text-muted mt-1">
-                        <i class="bi bi-info-circle me-1"></i>1 bit: máxima imperceptibilidad.
-                        2–4 bits: más capacidad, mayor detección ML.
+                        1 bit ofrece mayor imperceptibilidad. 2–4 bits aumentan la capacidad, pero también la alteración estadística.
                       </div>
                     </div>
                     <div class="col-6">
@@ -597,34 +596,6 @@
               <p class="small text-muted">El estegoanálisis es la disciplina opuesta: busca detectar si una imagen
               (u otro medio) contiene información oculta. Este sistema implementa estegoanálisis
               estadístico (análisis de distribución LSB) y basado en Machine Learning (SRNet-lite).</p>
-
-              <h6 class="fw-semibold mt-3">Árbol de decisión del sistema</h6>
-              <p class="small text-muted mb-1">El resultado del análisis integrado sigue cuatro casos en orden de prioridad:</p>
-              <div class="info-formula p-3 rounded mb-2 small">
-                <div class="mb-1"><span class="badge bg-purple text-white me-2" style="background:#7c3aed;">A</span>
-                  <strong>Mensaje oculto encontrado</strong> (<code>payload_found</code>) —
-                  La extracción LSB detectó la cabecera STEGODETECTv1 y SHA-256 válido.
-                  Evidencia directa, matemáticamente verificable. Prioridad máxima.
-                </div>
-                <div class="mb-1"><span class="badge bg-danger me-2">B</span>
-                  <strong>Posible esteganografía detectada</strong> (<code>ml_suspicious</code>) —
-                  Puntaje ML ≥ 0.46 (threshold calibrado). Sin payload StegoDetect recuperable.
-                  Evidencia probabilística.
-                </div>
-                <div class="mb-1"><span class="badge bg-warning text-dark me-2">C</span>
-                  <strong>Sin evidencia concluyente</strong> (<code>inconclusive_low_ml</code>) —
-                  Puntaje ML entre 30% y 46%: señal débil, bajo el threshold. No concluyente.
-                </div>
-                <div><span class="badge bg-success me-2">D</span>
-                  <strong>Sin evidencia esteganográfica</strong> (<code>no_stego_evidence</code>) —
-                  Puntaje ML &lt; 30% y sin cabecera StegoDetect. Mínima evidencia según los métodos aplicados.
-                </div>
-              </div>
-              <p class="small text-muted">
-                <i class="bi bi-exclamation-triangle me-1 text-warning"></i>
-                El modelo ML fue fine-tuned con BOSSBase + dataset externo (threshold 0.46).
-                En todos los casos el resultado es <strong>evidencia técnica, no prueba legal</strong>.
-              </p>
 
               <h6 class="fw-semibold mt-3">Técnica LSB (Least Significant Bit)</h6>
               <p class="small text-muted">En una imagen de 8 bits por canal, el bit menos significativo (LSB) de cada

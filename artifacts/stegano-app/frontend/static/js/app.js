@@ -726,7 +726,7 @@ function initExtractTab() {
 
     // Badge SHA-256
     const shaBadge = document.getElementById('extract-sha-badge');
-    shaBadge.textContent = data.sha256_valid ? '✓ SHA-256 OK' : '⚠ SHA-256 FALLO';
+    shaBadge.textContent = data.sha256_valid ? 'SHA-256 OK' : 'SHA-256 FALLO';
     shaBadge.className   = `badge ${data.sha256_valid ? 'bg-success' : 'bg-danger'}`;
 
     // Metadatos

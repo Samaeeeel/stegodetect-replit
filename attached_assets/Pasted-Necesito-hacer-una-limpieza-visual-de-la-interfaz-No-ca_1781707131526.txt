@@ -1,0 +1,69 @@
+Necesito hacer una limpieza visual de la interfaz. No cambies la lógica del backend, no cambies el modelo ML, no cambies la extracción LSB, no cambies los thresholds y no modifiques la lógica de decisión. Esto es únicamente un ajuste de interfaz y textos.
+
+Antes de modificar, revisa los archivos del frontend donde se renderiza la guía técnica, probablemente:
+- frontend/index.html
+- frontend/static/js/app.js
+- frontend/static/css/main.css
+
+Cambios requeridos:
+
+1. Eliminar de la interfaz principal la sección completa titulada:
+“Árbol de decisión del sistema”
+
+Actualmente aparece un bloque grande con los estados:
+- payload_found
+- ml_suspicious
+- inconclusive_low_ml
+- no_stego_evidence
+
+También aparece una nota inferior que dice algo como:
+“El modelo ML fue fine-tuned con BOSSBase + dataset externo... evidencia técnica, no prueba legal.”
+
+Quiero que todo ese bloque deje de mostrarse en la pantalla principal. No lo necesito visible para el usuario porque ocupa mucho espacio y hace que la interfaz se vea demasiado cargada.
+
+Importante:
+- No elimines la lógica interna de esos estados.
+- No cambies los nombres internos de los status.
+- No cambies la respuesta JSON.
+- No cambies el PDF si esa información es necesaria ahí.
+- Solo quita ese bloque explicativo de la interfaz principal.
+
+Si existe una sección de “Guía técnica” o “Ayuda” dentro del HTML donde está ese árbol, elimínala o déjala oculta, pero no debe verse en la pantalla principal.
+
+2. Quitar el visto del selector “Bits por canal”.
+
+Actualmente en el select aparece:
+“1 bit — Estándar ✓”
+
+Debe quedar:
+“1 bit — Estándar”
+
+También revisa si en otros lugares aparece el símbolo “✓” asociado a esta opción y elimínalo.
+
+El selector debe quedar limpio, por ejemplo:
+- 1 bit — Estándar
+- 2 bits — Mayor capacidad
+- 3 bits — Avanzado
+- 4 bits — Avanzado
+
+3. Mantener el texto explicativo debajo del selector, pero sin símbolos innecesarios.
+
+Puede quedar así:
+“1 bit: máxima imperceptibilidad. 2–4 bits: más capacidad, mayor detección ML.”
+
+O, si quieres dejarlo más claro:
+“1 bit ofrece mayor imperceptibilidad. 2–4 bits aumentan la capacidad, pero también la alteración estadística.”
+
+4. Verificación final:
+
+Después de hacer los cambios, ejecuta la aplicación y confirma:
+
+- Ya no aparece el bloque “Árbol de decisión del sistema” en la interfaz principal.
+- Ya no aparece el visto “✓” en “1 bit — Estándar”.
+- El selector de bits sigue funcionando correctamente.
+- La inserción LSB sigue funcionando.
+- El análisis de imágenes sigue funcionando.
+- El reporte PDF sigue generándose.
+- No se modificó la lógica de payload_found, ml_suspicious, inconclusive_low_ml ni no_stego_evidence.
+
+No hagas cambios grandes ni rediseños completos. Solo limpieza visual y ajuste de texto.
