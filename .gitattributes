@@ -1,1 +1,5 @@
 artifacts/stegano-app/backend/storage/stego_artifacts/positions_cb12b5fd-a85c-4e50-8a2a-454aacfcbc5e.csv filter=lfs diff=lfs merge=lfs -text
+artifacts/stegano-app/backend/storage/stego_artifacts/positions_0d96ec58-dfd3-401c-948e-4dfbcd996aec.csv filter=lfs diff=lfs merge=lfs -text
+artifacts/stegano-app/backend/storage/stego_artifacts/positions_1734710b-1b15-4cd3-bd9c-4f8a723162d5.csv filter=lfs diff=lfs merge=lfs -text
+artifacts/stegano-app/backend/storage/stego_artifacts/positions_45f163f6-b736-4f55-9424-58afc5bd051e.csv filter=lfs diff=lfs merge=lfs -text
+artifacts/stegano-app/backend/storage/stego_artifacts/positions_cfda27cf-1664-4e6a-9548-163e7f16d285.csv filter=lfs diff=lfs merge=lfs -text
